@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/react-native-emm",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "React Native package for EMM managed configurations",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -13,7 +13,7 @@
     "android",
     "ios",
     "cpp",
-    "mattermost-react-native-emm.podspec",
+    "react-native-emm.podspec",
     "!lib/typescript/example",
     "!**/__tests__",
     "!**/__fixtures__",
