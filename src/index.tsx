@@ -32,7 +32,7 @@ type RNEmmType = {
 
   exitApp(): void;
 
-  getManagedConfig(): Promise<any>;
+  getManagedConfig(): Promise<Record<string, any>>;
 
   isDeviceSecured(): Promise<boolean>;
 
@@ -45,7 +45,7 @@ const { RNEmm } = NativeModules;
 
 const emitter =
   Platform.OS === 'ios' ? new NativeEventEmitter(RNEmm) : DeviceEventEmitter;
-let cachedConfig: any = {};
+let cachedConfig: Record<string, any> = {};
 
 export default {
   ...RNEmm,
@@ -79,7 +79,10 @@ export default {
       return cachedConfig;
     }
 
-    cachedConfig = await RNEmm.getManagedConfig();
+    const managed = await RNEmm.getManagedConfig();
+    if (managed) {
+      cachedConfig = managed;
+    }
 
     return cachedConfig;
   },
