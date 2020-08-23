@@ -1,32 +1,17 @@
 import {
   DeviceEventEmitter,
-  EmitterSubscription,
   NativeModules,
   NativeEventEmitter,
   Platform,
 } from 'react-native';
+import type { EmitterSubscription } from 'react-native';
 
-export type AuthenticateProps = {
-  reason?: string;
-  description?: string;
-  fallback?: boolean;
-  supressEnterPassword?: boolean;
-};
+interface IEnterpriseMobilityManager {
+  addListener(callback: ManagedConfigCallBack): EmitterSubscription;
 
-export type SecurityType = {
-  face: boolean;
-  fingerprint: boolean;
-  passcode: boolean;
-};
+  authenticate(opts: AuthenticateConfig): Promise<boolean>;
 
-type EventCallBack = (config: any) => void;
-
-type RNEmmType = {
-  addListener(callback: EventCallBack): EmitterSubscription;
-
-  authenticate(opts: AuthenticateProps): Promise<boolean>;
-
-  deviceSecureWith(): Promise<SecurityType>;
+  deviceSecureWith(): Promise<AuthenticationMethods>;
 
   enableBlurScreen(enabled: boolean): void;
 
@@ -39,7 +24,7 @@ type RNEmmType = {
   openSecuritySettings(): void;
 
   setAppGroupId(identifier: string): void;
-};
+}
 
 const { RNEmm } = NativeModules;
 
@@ -49,7 +34,7 @@ let cachedConfig: Record<string, any> = {};
 
 export default {
   ...RNEmm,
-  addListener: (callback: EventCallBack) => {
+  addListener: (callback: ManagedConfigCallBack) => {
     return emitter.addListener('managedConfigChanged', (config: any) => {
       cachedConfig = config;
 
@@ -58,9 +43,9 @@ export default {
       }
     });
   },
-  authenticate: async (opts: AuthenticateProps) => {
+  authenticate: async (opts: AuthenticateConfig) => {
     try {
-      const options: AuthenticateProps = {
+      const options: AuthenticateConfig = {
         reason: opts.reason || '',
         description: opts.description || '',
         fallback: opts.fallback || true,
@@ -88,7 +73,7 @@ export default {
   },
   isDeviceSecured: async () => {
     try {
-      const result: SecurityType = await RNEmm.deviceSecureWith();
+      const result: AuthenticationMethods = await RNEmm.deviceSecureWith();
       return result.face || result.fingerprint || result.passcode;
     } catch {
       return false;
@@ -104,4 +89,4 @@ export default {
       RNEmm.setAppGroupId(identifier);
     }
   },
-} as RNEmmType;
+} as IEnterpriseMobilityManager;

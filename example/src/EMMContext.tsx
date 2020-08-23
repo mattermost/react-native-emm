@@ -13,13 +13,13 @@ export const Provider: FunctionComponent = ({ children }) => {
   const [managed, setManaged] = useState<Record<string, any>>(initialContext);
 
   useEffect(() => {
-    RNEmm.getManagedConfig().then((config) => {
+    RNEmm.getManagedConfig().then((config: AuthenticateConfig) => {
       setManaged(config);
     });
   }, []);
 
   useEffect(() => {
-    const listener = RNEmm.addListener((config) => {
+    const listener = RNEmm.addListener((config: AuthenticateConfig) => {
       setManaged(config);
     });
 

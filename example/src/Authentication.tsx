@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
-import RNEmm, { AuthenticateProps } from '@mattermost/react-native-emm';
+import RNEmm from '@mattermost/react-native-emm';
 
 import Button from './Button';
 
@@ -50,7 +50,7 @@ const Authentication = () => {
     const secured = await RNEmm.isDeviceSecured();
 
     if (secured) {
-      const opts: AuthenticateProps = {
+      const opts: AuthenticateConfig = {
         reason: 'Some Reason',
         description: 'Test description',
         fallback: true,
