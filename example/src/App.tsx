@@ -1,57 +1,43 @@
 import * as React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
-import RNEmm from '@mattermost/react-native-emm';
+import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 
-export default function App() {
-  const [result, setResult] = React.useState<any | undefined>();
-
-  const exitApp = () => {
-    RNEmm.exitApp();
-  };
-
-  React.useEffect(() => {
-    RNEmm.deviceSecureWith().then(setResult);
-    RNEmm.enableBlurScreen(true);
-    RNEmm.isDeviceSecured().then((secured) => {
-      if (secured) {
-        RNEmm.authenticate('Some reason').then((authenticated: boolean) => {
-          console.log('Authenticated?', authenticated);
-          if (authenticated) {
-            RNEmm.getManagedConfig().then((config) => {
-              console.log('GOT MANAGED CONFIG', config);
-            });
-          }
-        });
-      }
-    });
-  }, []);
-
-  React.useEffect(() => {
-    const listener = RNEmm.addListener((config: any) => {
-      console.log('GOT MANAGED CONFIG EVENT', config);
-    });
-
-    return () => {
-      listener.remove();
-    };
-  }, []);
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.label} onPress={exitApp}>
-        Result: {JSON.stringify(result)}
-      </Text>
-    </View>
-  );
-}
+import { Provider } from './EMMContext';
+import Authentication from './Authentication';
+import ManagedConfig from './ManagedConfig';
+import Others from './Others';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  divider: {
+    width: '100%',
+    height: 1,
+    backgroundColor: 'lightgray',
+    marginVertical: 10,
   },
   label: {
     fontSize: 18,
   },
 });
+
+const Divider = () => {
+  return <View style={styles.divider} />;
+};
+
+export default function App() {
+  return (
+    <Provider>
+      <SafeAreaView style={styles.container}>
+        <ScrollView>
+          <ManagedConfig />
+          <Divider />
+          <Authentication />
+          <Divider />
+          <Others />
+        </ScrollView>
+      </SafeAreaView>
+    </Provider>
+  );
+}
