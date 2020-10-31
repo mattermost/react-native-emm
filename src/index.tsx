@@ -26,14 +26,14 @@ interface IEnterpriseMobilityManager {
   setAppGroupId(identifier: string): void;
 }
 
-const { RNEmm } = NativeModules;
+const { Emm } = NativeModules;
 
 const emitter =
-  Platform.OS === 'ios' ? new NativeEventEmitter(RNEmm) : DeviceEventEmitter;
+  Platform.OS === 'ios' ? new NativeEventEmitter(Emm) : DeviceEventEmitter;
 let cachedConfig: Record<string, any> = {};
 
 export default {
-  ...RNEmm,
+  ...Emm,
   addListener: (callback: ManagedConfigCallBack) => {
     return emitter.addListener('managedConfigChanged', (config: any) => {
       cachedConfig = config;
@@ -52,7 +52,7 @@ export default {
         supressEnterPassword: opts.supressEnterPassword || false,
       };
 
-      await RNEmm.authenticate(options);
+      await Emm.authenticate(options);
 
       return true;
     } catch {
@@ -64,7 +64,7 @@ export default {
       return cachedConfig;
     }
 
-    const managed = await RNEmm.getManagedConfig();
+    const managed = await Emm.getManagedConfig();
     if (managed) {
       cachedConfig = managed;
     }
@@ -73,7 +73,7 @@ export default {
   },
   isDeviceSecured: async () => {
     try {
-      const result: AuthenticationMethods = await RNEmm.deviceSecureWith();
+      const result: AuthenticationMethods = await Emm.deviceSecureWith();
       return result.face || result.fingerprint || result.passcode;
     } catch {
       return false;
@@ -81,12 +81,12 @@ export default {
   },
   openSecuritySettings: () => {
     if (Platform.OS === 'android') {
-      RNEmm.openSecuritySettings();
+      Emm.openSecuritySettings();
     }
   },
   setAppGroupId: (identifier: string) => {
     if (Platform.OS === 'ios') {
-      RNEmm.setAppGroupId(identifier);
+      Emm.setAppGroupId(identifier);
     }
   },
 } as IEnterpriseMobilityManager;

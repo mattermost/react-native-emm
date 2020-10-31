@@ -1,7 +1,7 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
 
-@interface RCT_EXTERN_REMAP_MODULE(RNEmm, ReactNativeEmm, RCTEventEmitter)
+@interface RCT_EXTERN_REMAP_MODULE(Emm, ReactNativeEmm, RCTEventEmitter)
 RCT_EXTERN_METHOD(authenticate:(NSDictionary *)options
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)

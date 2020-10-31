@@ -68,8 +68,8 @@ Or if you have trouble, make the following additions to the given files manually
 #### **android/settings.gradle**
 
 ```gradle
-include ':mattermost.rnemm'
-project(':mattermost.rnemm').projectDir = new File(rootProject.projectDir, '../node_modules/@mattermost/react-native-emm/android')
+include ':mattermost.Emm'
+project(':mattermost.Emm').projectDir = new File(rootProject.projectDir, '../node_modules/@mattermost/react-native-emm/android')
 ```
 
 #### **android/app/build.gradle**
@@ -77,7 +77,7 @@ project(':mattermost.rnemm').projectDir = new File(rootProject.projectDir, '../n
 ```diff
 dependencies {
    ...
-+   implementation project(':mattermost.rnemm')
++   implementation project(':mattermost.Emm')
 }
 ```
 
@@ -92,10 +92,10 @@ android.useAndroidX=true
 On top, where imports are:
 
 ```java
-import com.mattermost.rnemm.RNEmmPackage;
+import com.mattermost.Emm.EmmPackage;
 ```
 
-Add the `RNEmmPackage` class to your list of exported packages.
+Add the `EmmPackage` class to your list of exported packages.
 
 ```diff
 @Override
@@ -104,7 +104,7 @@ protected  List<ReactPackage> getPackages() {
   List<ReactPackage> packages = new  PackageList(this).getPackages();
   // Packages that cannot be autolinked yet can be added manually here, for ReactNativeEmmExample:
   // packages.add(new MyReactNativePackage());
-+  packages.add(new RNEmmPackage());
++  packages.add(new EmmPackage());
   return packages;
 }
 ```
@@ -153,7 +153,7 @@ In this file you'll need to add **all** available managed configuration for the 
 
 ```javascript
 // Load the module
-import RNEmm from '@mattermost/react-native-emm';
+import Emm from '@mattermost/react-native-emm';
 ```
 
 ### Events
@@ -182,7 +182,7 @@ Event used to listen for Managed Configuration changes while the app is running.
 Example:
 ```js
 useEffect(() => {
-  const  listener = RNEmm.addListener((config: AuthenticateConfig) => {
+  const  listener = Emm.addListener((config: AuthenticateConfig) => {
     setManaged(config);
   });
 
@@ -207,7 +207,7 @@ const opts: AuthenticateConfig = {
   fallback: true,
   supressEnterPassword: true,
 };
-const authenticated = await RNEmm.authenticate(opts);
+const authenticated = await Emm.authenticate(opts);
 ```
 
 Platforms: All
@@ -219,7 +219,7 @@ Get available device authentication methods.
 
 Example:
 ```js
-const optionsAvailable: AuthenticationMethods = await RNEmm.deviceSecureWith()
+const optionsAvailable: AuthenticationMethods = await Emm.deviceSecureWith()
 ```
 
 Platforms: All
@@ -232,7 +232,7 @@ Android: Blanks the application screen in the Task Manager
 
 Example:
 ```
-RNEmm.enableBlurScreen(true);
+Emm.enableBlurScreen(true);
 ```
 
 Platforms: All
@@ -244,7 +244,7 @@ Forces the app to exit.
 
 Example:
 ```
-RNEmm.exitApp();
+Emm.exitApp();
 ```
 Platforms: All
 
@@ -258,7 +258,7 @@ Android uses the Restriction Manager to set the managed configuration settings a
 
 Example:
 ```
-const manged: Record<string, any> = RNEmm.getManagedConfig(); // Managed configuration object containing keys and values
+const manged: Record<string, any> = Emm.getManagedConfig(); // Managed configuration object containing keys and values
 ```
 
 Platforms: all
@@ -270,7 +270,7 @@ Determines if the device has at least one authentication method enabled.
 
 Example:
 ```
-const secured = await RNEmm.isDeviceSecured();
+const secured = await Emm.isDeviceSecured();
 ```
 Platforms: All
 
@@ -281,7 +281,7 @@ If the device is not secured, you can use this function to take the user to the 
 
 Example:
 ```
-RNEmm.openSecuritySettings();
+Emm.openSecuritySettings();
 ```
 
 **Note**: This function will close the running application.
@@ -295,7 +295,7 @@ At times you may built an iOS extension application (ex: Share Extension / Notif
 
 Example:
 ```
-RNEmm.setAppGroupId('group.com.example.myapp);
+Emm.setAppGroupId('group.com.example.myapp);
 ```
 Platforms: iOS
 

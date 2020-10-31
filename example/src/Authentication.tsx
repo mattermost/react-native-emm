@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
-import RNEmm from '@mattermost/react-native-emm';
+import Emm from '@mattermost/react-native-emm';
 
 import Button from './Button';
 
@@ -47,7 +47,7 @@ const Authentication = () => {
   const [auth, setAuth] = useState<boolean | undefined>(undefined);
 
   const authenticate = async () => {
-    const secured = await RNEmm.isDeviceSecured();
+    const secured = await Emm.isDeviceSecured();
 
     if (secured) {
       const opts: AuthenticateConfig = {
@@ -56,7 +56,7 @@ const Authentication = () => {
         fallback: true,
         supressEnterPassword: false,
       };
-      const authenticated = await RNEmm.authenticate(opts);
+      const authenticated = await Emm.authenticate(opts);
       setAuth(authenticated);
     } else {
       Alert.alert(
@@ -67,7 +67,7 @@ const Authentication = () => {
   };
 
   React.useEffect(() => {
-    RNEmm.deviceSecureWith().then(setMethods);
+    Emm.deviceSecureWith().then(setMethods);
   }, []);
 
   const items = useMemo(() => {

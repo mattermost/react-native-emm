@@ -1,4 +1,4 @@
-package com.mattermost.rnemm
+package com.mattermost.emm
 
 import android.app.Activity
 import android.app.KeyguardManager
@@ -17,7 +17,7 @@ import kotlin.system.exitProcess
 
 
 @RequiresApi(Build.VERSION_CODES.M)
-class RNEmmModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext), LifecycleEventListener {
+class EmmModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext), LifecycleEventListener {
   private var blurEnabled: Boolean = false
   private var managedConfig: Bundle? = null
   private var authPromise: Promise? = null
@@ -62,7 +62,7 @@ class RNEmmModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
   }
 
   override fun getName(): String {
-      return "RNEmm"
+      return "Emm"
   }
 
   override fun onHostResume() {

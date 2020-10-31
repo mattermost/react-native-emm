@@ -1,4 +1,4 @@
-package com.mattermost.rnemm
+package com.mattermost.emm
 
 import java.util.Arrays
 import java.util.Collections
@@ -9,9 +9,9 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.uimanager.ViewManager
 import com.facebook.react.bridge.JavaScriptModule
 
-class RNEmmPackage : ReactPackage {
+class EmmPackage : ReactPackage {
     override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> {
-        return Arrays.asList<NativeModule>(RNEmmModule(reactContext))
+        return Arrays.asList<NativeModule>(EmmModule(reactContext))
     }
 
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {

@@ -44,7 +44,7 @@ To run the example app on Android:
 
 ```sh
 
-npm run example android
+npm run example run android
 
 ```
 
@@ -56,7 +56,7 @@ To run the example app on iOS:
 
 ```sh
 
-npm run example ios
+npm run example run ios
 
 ```
 

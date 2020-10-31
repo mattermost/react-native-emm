@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
-import RNEmm from '@mattermost/react-native-emm';
+import Emm from '@mattermost/react-native-emm';
 
 import Button from './Button';
 
@@ -35,7 +35,7 @@ const BlurAppScreen = () => {
   const [enabled, setEnabled] = useState<boolean | undefined>(undefined);
 
   const toggle = () => {
-    RNEmm.enableBlurScreen(!enabled);
+    Emm.enableBlurScreen(!enabled);
     setEnabled(!enabled);
   };
 
@@ -48,7 +48,7 @@ const BlurAppScreen = () => {
 
 const ExitApp = () => {
   const exitApp = () => {
-    RNEmm.exitApp();
+    Emm.exitApp();
   };
 
   return (
@@ -63,7 +63,7 @@ const ExitApp = () => {
 
 const SecuritySettings = () => {
   const settings = () => {
-    RNEmm.openSecuritySettings();
+    Emm.openSecuritySettings();
   };
 
   if (Platform.OS !== 'android') {

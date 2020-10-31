@@ -4,7 +4,7 @@ import React, {
   useState,
   FunctionComponent,
 } from 'react';
-import RNEmm from '@mattermost/react-native-emm';
+import Emm from '@mattermost/react-native-emm';
 
 const initialContext = {};
 const EMMContext = createContext<Record<string, any>>(initialContext);
@@ -13,13 +13,13 @@ export const Provider: FunctionComponent = ({ children }) => {
   const [managed, setManaged] = useState<Record<string, any>>(initialContext);
 
   useEffect(() => {
-    RNEmm.getManagedConfig().then((config: AuthenticateConfig) => {
+    Emm.getManagedConfig().then((config: AuthenticateConfig) => {
       setManaged(config);
     });
   }, []);
 
   useEffect(() => {
-    const listener = RNEmm.addListener((config: AuthenticateConfig) => {
+    const listener = Emm.addListener((config: AuthenticateConfig) => {
       setManaged(config);
     });
 
