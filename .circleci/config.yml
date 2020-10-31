@@ -3,7 +3,7 @@ version: 2.1
 executors:
   default:
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:14
     working_directory: ~/project
 
 commands:
@@ -20,23 +20,13 @@ jobs:
       - attach_project
       - restore_cache:
           keys:
-            - dependencies-{{ checksum "package.json" }}
-            - dependencies-
-      - restore_cache:
-          keys:
-            - dependencies-example-{{ checksum "example/package.json" }}
-            - dependencies-example-
+            - dependencies-{{ checksum "package-lock.json" }}
       - run:
           name: Install dependencies
-          command: |
-            yarn install --cwd example --frozen-lockfile
-            yarn install --frozen-lockfile
+          command: npm i
       - save_cache:
-          key: dependencies-{{ checksum "package.json" }}
+          key: dependencies-{{ checksum "package-lock.json" }}
           paths: node_modules
-      - save_cache:
-          key: dependencies-example-{{ checksum "example/package.json" }}
-          paths: example/node_modules
       - persist_to_workspace:
           root: .
           paths: .
@@ -48,7 +38,7 @@ jobs:
       - run:
           name: Lint files
           command: |
-            yarn lint
+            npm run lint
 
   typescript:
     executor: default
@@ -57,7 +47,7 @@ jobs:
       - run:
           name: Typecheck files
           command: |
-            yarn typescript
+            npm run typescript
 
   unit-tests:
     executor: default
@@ -66,7 +56,7 @@ jobs:
       - run:
           name: Run unit tests
           command: |
-            yarn test --coverage
+            npm test -- --coverage
       - store_artifacts:
           path: coverage
           destination: coverage
@@ -78,7 +68,7 @@ jobs:
       - run:
           name: Build package
           command: |
-            yarn prepare
+            npm run prepare
 
 workflows:
   build-and-test:

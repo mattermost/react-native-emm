@@ -10,13 +10,13 @@ When you submit a pull request, it goes through a [code review process outlined 
 
   
 
-To get started with the project, run `yarn bootstrap` in the root directory to install the required dependencies for each package:
+To get started with the project, run `npm run bootstrap` in the root directory to install the required dependencies for each package:
 
   
 
 ```sh
 
-yarn bootstrap
+npm run bootstrap
 
 ```
 
@@ -32,7 +32,7 @@ To start the packager:
 
 ```sh
 
-yarn example start
+npm run example start
 
 ```
 
@@ -44,7 +44,7 @@ To run the example app on Android:
 
 ```sh
 
-yarn example android
+npm run example android
 
 ```
 
@@ -56,7 +56,7 @@ To run the example app on iOS:
 
 ```sh
 
-yarn example ios
+npm run example ios
 
 ```
 
@@ -68,9 +68,9 @@ Make sure your code passes TypeScript and ESLint. Run the following to verify:
 
 ```sh
 
-yarn typescript
+npm run typescript
 
-yarn lint
+npm run lint
 
 ```
 
@@ -82,7 +82,7 @@ To fix formatting errors, run the following:
 
 ```sh
 
-yarn lint --fix
+npm run lint -- --fix
 
 ```
 
@@ -94,13 +94,13 @@ Remember to add tests for your change if possible. Run the unit tests by:
 
 ```sh
 
-yarn test
+npm test
 
 ```
 
   
 
-To edit the Objective-C files, open `example/ios/ReactNativeEmmExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > @mattermost/react-native-emm`.
+To edit the Objective-C files, open `example/ios/ReactNativeEmmExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > react-native-emm`.
 
   
 
@@ -158,19 +158,19 @@ The `package.json` file contains various scripts for common tasks:
 
   
 
--  `yarn bootstrap`: setup project by installing all dependencies and pods.
+-  `npm run bootstrap`: setup project by installing all dependencies and pods.
 
--  `yarn typescript`: type-check files with TypeScript.
+-  `npm run typescript`: type-check files with TypeScript.
 
--  `yarn lint`: lint files with ESLint.
+-  `npm run lint`: lint files with ESLint.
 
--  `yarn test`: run unit tests with Jest.
+-  `npm test`: run unit tests with Jest.
 
--  `yarn example start`: start the Metro server for the example app.
+-  `npm run example start`: start the Metro server for the example app.
 
--  `yarn example android`: run the example app on Android.
+-  `npm run example android`: run the example app on Android.
 
--  `yarn example ios`: run the example app on iOS.
+-  `npm run example ios`: run the example app on iOS.
 
   
 
