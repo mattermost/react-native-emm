@@ -20,12 +20,13 @@ jobs:
       - attach_project
       - restore_cache:
           keys:
-            - dependencies-{{ checksum "package-lock.json" }}
+            - dependencies-{{ checksum "package.json" }}
       - run:
           name: Install dependencies
-          command: npm i
+          command: |
+            npm install
       - save_cache:
-          key: dependencies-{{ checksum "package-lock.json" }}
+          key: dependencies-{{ checksum "package.json" }}
           paths: node_modules
       - persist_to_workspace:
           root: .
@@ -56,7 +57,7 @@ jobs:
       - run:
           name: Run unit tests
           command: |
-            npm test -- --coverage
+            npm test --coverage
       - store_artifacts:
           path: coverage
           destination: coverage
@@ -69,9 +70,30 @@ jobs:
           name: Build package
           command: |
             npm run prepare
+  
+  release:
+    executor: default
+    steps:
+      - attach_project
+      - run:
+          name: Release to GitHub
+          command: npm run release -- --ci
+
+  publish:
+    executor: default
+    steps:
+      - attach_project
+      - run:
+          name: Authenticate with registry
+          command: |
+            echo "//registry.npmjs.org/:authToken=$NPM_TOKEN" > ~/project/.npmrc
+            echo "scope=$NPM_SCOPE"
+      - run:
+          name: Publish package
+          run: npm publish --access public
 
 workflows:
-  build-and-test:
+  build:
     jobs:
       - install-dependencies
       - lint:
@@ -86,3 +108,22 @@ workflows:
       - build-package:
           requires:
             - install-dependencies
+            - lint
+            - typescript
+            - unit-tests
+      - release:
+          context: mattermost-rn-libraries
+          requires:
+            - build-package
+          fliters:
+            branches:
+              only: /^release-\d+$/
+      - publish:
+          context: mattermost-rn-libraries
+          requires:
+            - build-package
+          filters:
+            tags:
+              only: /^v(\d+\.)(\d+\.)(\d+)(.*)?$/
+            branches:
+              ignore: /.*/
