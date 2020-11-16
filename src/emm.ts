@@ -4,27 +4,13 @@ import {
   NativeEventEmitter,
   Platform,
 } from 'react-native';
-import type { EmitterSubscription } from 'react-native';
 
-interface IEnterpriseMobilityManager {
-  addListener(callback: ManagedConfigCallBack): EmitterSubscription;
-
-  authenticate(opts: AuthenticateConfig): Promise<boolean>;
-
-  deviceSecureWith(): Promise<AuthenticationMethods>;
-
-  enableBlurScreen(enabled: boolean): void;
-
-  exitApp(): void;
-
-  getManagedConfig(): Promise<Record<string, any>>;
-
-  isDeviceSecured(): Promise<boolean>;
-
-  openSecuritySettings(): void;
-
-  setAppGroupId(identifier: string): void;
-}
+import type {
+  AuthenticateConfig,
+  AuthenticationMethods,
+} from './types/authenticate';
+import type { EnterpriseMobilityManager } from './types/managed';
+import type { ManagedConfigCallBack } from './types/events';
 
 const { Emm } = NativeModules;
 
@@ -32,7 +18,7 @@ const emitter =
   Platform.OS === 'ios' ? new NativeEventEmitter(Emm) : DeviceEventEmitter;
 let cachedConfig: Record<string, any> = {};
 
-export default {
+const EMM: EnterpriseMobilityManager = {
   ...Emm,
   addListener: (callback: ManagedConfigCallBack) => {
     return emitter.addListener('managedConfigChanged', (config: any) => {
@@ -89,4 +75,6 @@ export default {
       Emm.setAppGroupId(identifier);
     }
   },
-} as IEnterpriseMobilityManager;
+};
+
+export default EMM;
