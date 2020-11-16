@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
-import Emm from '@mattermost/react-native-emm';
+import Emm, { AuthenticateConfig } from '@mattermost/react-native-emm';
 
 import Button from './Button';
 

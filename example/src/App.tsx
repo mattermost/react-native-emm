@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Provider } from '@mattermost/react-native-emm';
 
-import { Provider } from './EMMContext';
 import Authentication from './Authentication';
 import ManagedConfig from './ManagedConfig';
 import Others from './Others';

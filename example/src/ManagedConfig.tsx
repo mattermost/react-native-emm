@@ -1,7 +1,7 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import EMMContext from './EMMContext';
+import { useManagedConfig } from '@mattermost/react-native-emm';
 
 type ItemProps = {
   label: string;
@@ -42,7 +42,7 @@ const ConfigItem = ({ label, value }: ItemProps) => {
 };
 
 const ManagedConfig = () => {
-  const managed = useContext(EMMContext);
+  const managed = useManagedConfig();
 
   const items = useMemo(() => {
     const keys = Object.keys(managed);
