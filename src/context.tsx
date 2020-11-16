@@ -6,10 +6,9 @@ import React, {
   useContext,
   ComponentType,
 } from 'react';
-import Emm, {
-  AuthenticateConfig,
-  ManagedConfig,
-} from '@mattermost/react-native-emm';
+import Emm from './emm';
+import type { AuthenticateConfig } from './types/authenticate';
+import type { ManagedConfig } from './types/managed';
 
 const initialContext = {};
 const Context = createContext<any>(initialContext);
