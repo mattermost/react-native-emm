@@ -180,18 +180,23 @@ class ReactNativeEmm: RCTEventEmitter {
 
     @objc func managedConfigChaged(notification: Notification) -> Void {
         let config = managedConfig()
-        var result = Dictionary<String, Any>()
-        
-        if (config != nil) {
-            result = config!
+        if (config == nil) {
+            if (self.sharedUserDefaults?.dictionary(forKey: self.configurationKey) != nil) {
+                self.sharedUserDefaults?.removeObject(forKey: self.configurationKey)
+            }
+            return
         }
+        
+        let initial = self.sharedUserDefaults?.dictionary(forKey: self.configurationKey) ?? Dictionary<String, Any>()
+        let equal = NSDictionary(dictionary: initial).isEqual(to: config!)
+        
 
-        if (self.appGroupId != nil) {
-            self.sharedUserDefaults?.set(result, forKey: self.configurationKey)
+        if (self.appGroupId != nil && !equal) {
+            self.sharedUserDefaults?.set(config, forKey: self.configurationKey)
         }
         
         if (hasListeners) {
-            sendEvent(withName: "managedConfigChanged", body: result)
+            sendEvent(withName: "managedConfigChanged", body: config)
         }
     }
 
