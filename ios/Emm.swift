@@ -187,11 +187,8 @@ class ReactNativeEmm: RCTEventEmitter {
             return
         }
         
-        var initial = self.sharedUserDefaults?.dictionary(forKey: self.configurationKey)
-        if (initial == nil) {
-            initial = Dictionary<String, Any>()
-        }
-        let equal = NSDictionary(dictionary: initial!).isEqual(to: config!)
+        let initial = self.sharedUserDefaults?.dictionary(forKey: self.configurationKey) ?? Dictionary<String, Any>()
+        let equal = NSDictionary(dictionary: initial).isEqual(to: config!)
         
 
         if (self.appGroupId != nil && !equal) {
