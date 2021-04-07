@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
+
 import Emm from '@mattermost/react-native-emm';
 
 import Button from './Button';
@@ -33,6 +35,8 @@ const styles = StyleSheet.create({
 
 const BlurAppScreen = () => {
   const [enabled, setEnabled] = useState<boolean | undefined>(undefined);
+  const isDarkMode = useColorScheme() === 'dark';
+  const color = isDarkMode ? Colors.white : Colors.black;
 
   const toggle = () => {
     Emm.enableBlurScreen(!enabled);
@@ -41,12 +45,14 @@ const BlurAppScreen = () => {
 
   return (
     <Button onPress={toggle} success={enabled}>
-      <Text>{'Blur application screen'}</Text>
+      <Text style={{ color }}>{'Blur application screen'}</Text>
     </Button>
   );
 };
 
 const ExitApp = () => {
+  const isDarkMode = useColorScheme() === 'dark';
+  const color = isDarkMode ? Colors.white : Colors.black;
   const exitApp = () => {
     Emm.exitApp();
   };
@@ -55,13 +61,16 @@ const ExitApp = () => {
     <>
       <View style={styles.separator} />
       <Button onPress={exitApp}>
-        <Text>{'Exit app'}</Text>
+        <Text style={{ color }}>{'Exit app'}</Text>
       </Button>
     </>
   );
 };
 
 const SecuritySettings = () => {
+  const isDarkMode = useColorScheme() === 'dark';
+  const color = isDarkMode ? Colors.white : Colors.black;
+
   const settings = () => {
     Emm.openSecuritySettings();
   };
@@ -74,16 +83,18 @@ const SecuritySettings = () => {
     <>
       <View style={styles.separator} />
       <Button onPress={settings}>
-        <Text>{'Open Security Settings'}</Text>
+        <Text style={{ color }}>{'Open Security Settings'}</Text>
       </Button>
     </>
   );
 };
 
 const Authentication = () => {
+  const isDarkMode = useColorScheme() === 'dark';
+  const color = isDarkMode ? Colors.white : Colors.black;
   return (
     <View style={styles.container}>
-      <Text style={styles.section}>{'Other Options'}</Text>
+      <Text style={[styles.section, { color }]}>{'Other Options'}</Text>
       <BlurAppScreen />
       <SecuritySettings />
       <ExitApp />

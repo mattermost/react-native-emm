@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
+
 import Emm from '@mattermost/react-native-emm';
 import type { AuthenticateConfig } from '@mattermost/react-native-emm';
 
@@ -35,10 +37,12 @@ const styles = StyleSheet.create({
 });
 
 const AuthItem = ({ label, value }: AuthItemProps) => {
+  const isDarkMode = useColorScheme() === 'dark';
+  const color = isDarkMode ? Colors.white : Colors.black;
   return (
     <View style={styles.item}>
-      <Text style={styles.label}>{`${label}:`}</Text>
-      <Text style={styles.value}>{value.toString()}</Text>
+      <Text style={[styles.label, { color }]}>{`${label}:`}</Text>
+      <Text style={[styles.value, { color }]}>{value.toString()}</Text>
     </View>
   );
 };
@@ -46,6 +50,8 @@ const AuthItem = ({ label, value }: AuthItemProps) => {
 const Authentication = () => {
   const [methods, setMethods] = useState<Record<string, any>>({});
   const [auth, setAuth] = useState<boolean | undefined>(undefined);
+  const isDarkMode = useColorScheme() === 'dark';
+  const color = isDarkMode ? Colors.white : Colors.black;
 
   const authenticate = async () => {
     const secured = await Emm.isDeviceSecured();
@@ -79,10 +85,12 @@ const Authentication = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.section}>{'Device Authentication Methods'}</Text>
+      <Text style={[styles.section, { color }]}>
+        {'Device Authentication Methods'}
+      </Text>
       {items}
       <Button onPress={authenticate} success={auth}>
-        <Text>{'Authenticate'}</Text>
+        <Text style={{ color }}>{'Authenticate'}</Text>
       </Button>
     </View>
   );

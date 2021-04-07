@@ -17,9 +17,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'lightgray',
     marginVertical: 10,
   },
-  label: {
-    fontSize: 18,
-  },
 });
 
 const Divider = () => {

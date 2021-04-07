@@ -133,7 +133,7 @@ Enable `APP_RESTRICTIONS` in your Android manifest file
 
 #### **android/src/main/res/xml/app_restriction.xml**
 
-In this file you'll need to add **all** available managed configuration for the app ([see example](/example/android/src/main/res/xml/app_restriction.xml)). For more information check out [Android's guide: Set up managed configurations]([https://developer.android.com/work/managed-configurations](https://developer.android.com/work/managed-configurations))
+In this file you'll need to add **all** available managed configuration for the app ([see example](/example/android/app/src/main/res/xml/app_restrictions.xml)). For more information check out [Android's guide: Set up managed configurations]([https://developer.android.com/work/managed-configurations](https://developer.android.com/work/managed-configurations))
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
