@@ -1,6 +1,13 @@
 import type { EmitterSubscription } from 'react-native';
 import type { AuthenticateConfig, AuthenticationMethods } from './authenticate';
-import type { ManagedConfigCallBack } from './events';
+
+export interface ManagedConfig {
+  [key: string]: any;
+}
+
+export type ManagedConfigCallBack = {
+  (config: ManagedConfig): void;
+};
 
 export interface EnterpriseMobilityManager {
   addListener(callback: ManagedConfigCallBack): EmitterSubscription;
@@ -20,8 +27,4 @@ export interface EnterpriseMobilityManager {
   openSecuritySettings(): void;
 
   setAppGroupId(identifier: string): void;
-}
-
-export interface ManagedConfig {
-  [key: string]: any;
 }

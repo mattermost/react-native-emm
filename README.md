@@ -170,9 +170,9 @@ import Emm from '@mattermost/react-native-emm';
 * [setAppGroupId](#setappgroupid)
 
 ### Types
-* [AuthenticateConfig](/types/authenticate.d.ts)
-* [AuthenticationMethods](/types/authenticate.d.ts)
-* [ManagedConfigCallBack](/types/events.d.ts)
+* [AuthenticateConfig](/src/types/authenticate.ts)
+* [AuthenticationMethods](/src/types/authenticate.ts)
+* [ManagedConfigCallBack](/src/types/events.ts)
 
 #### addListener
 `addListener(callback: ManagedConfigCallBack): EmitterSubscription;`
