@@ -9,19 +9,18 @@ import type {
   AuthenticateConfig,
   AuthenticationMethods,
 } from './types/authenticate';
-import type { EnterpriseMobilityManager } from './types/managed';
-import type { ManagedConfigCallBack } from './types/events';
+import type { EnterpriseMobilityManager, ManagedConfig, ManagedConfigCallBack } from './types/managed';
 
 const { Emm } = NativeModules;
 
 const emitter =
   Platform.OS === 'ios' ? new NativeEventEmitter(Emm) : DeviceEventEmitter;
-let cachedConfig: Record<string, any> = {};
+let cachedConfig: ManagedConfig = {};
 
 const EMM: EnterpriseMobilityManager = {
   ...Emm,
   addListener: (callback: ManagedConfigCallBack) => {
-    return emitter.addListener('managedConfigChanged', (config: any) => {
+    return emitter.addListener('managedConfigChanged', (config: ManagedConfig) => {
       cachedConfig = config;
 
       if (callback && typeof callback === 'function') {
@@ -50,9 +49,9 @@ const EMM: EnterpriseMobilityManager = {
       return cachedConfig;
     }
 
-    const managed = await Emm.getManagedConfig();
-    if (managed) {
-      cachedConfig = managed;
+    const config = await Emm.getManagedConfig();
+    if (config) {
+      cachedConfig = config;
     }
 
     return cachedConfig;
