@@ -9,3 +9,4 @@ lib/typescript/example
 android/build/
 ios/Build
 .circleci
+.husky

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 import { useManagedConfig } from '@mattermost/react-native-emm';
 
@@ -33,16 +34,20 @@ const styles = StyleSheet.create({
 });
 
 const ConfigItem = ({ label, value }: ItemProps) => {
+  const isDarkMode = useColorScheme() === 'dark';
+  const color = isDarkMode ? Colors.white : Colors.black;
   return (
     <View style={styles.item}>
-      <Text style={styles.label}>{label}</Text>
-      <Text style={styles.value}>{value.toString()}</Text>
+      <Text style={[styles.label, { color }]}>{label}</Text>
+      <Text style={[styles.value, { color }]}>{value.toString()}</Text>
     </View>
   );
 };
 
 const ManagedConfig = () => {
   const managed = useManagedConfig();
+  const isDarkMode = useColorScheme() === 'dark';
+  const color = isDarkMode ? Colors.white : Colors.black;
 
   const items = useMemo(() => {
     const keys = Object.keys(managed);
@@ -58,7 +63,9 @@ const ManagedConfig = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.section}>{'EMM Managed Configuration'}</Text>
+      <Text style={[styles.section, { color }]}>
+        {'EMM Managed Configuration'}
+      </Text>
       {items}
     </View>
   );
