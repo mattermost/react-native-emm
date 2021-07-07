@@ -9,7 +9,11 @@ import type {
   AuthenticateConfig,
   AuthenticationMethods,
 } from './types/authenticate';
-import type { EnterpriseMobilityManager, ManagedConfig, ManagedConfigCallBack } from './types/managed';
+import type {
+  EnterpriseMobilityManager,
+  ManagedConfig,
+  ManagedConfigCallBack,
+} from './types/managed';
 
 const { Emm } = NativeModules;
 
@@ -20,13 +24,16 @@ let cachedConfig: ManagedConfig = {};
 const EMM: EnterpriseMobilityManager = {
   ...Emm,
   addListener: (callback: ManagedConfigCallBack) => {
-    return emitter.addListener('managedConfigChanged', (config: ManagedConfig) => {
-      cachedConfig = config;
+    return emitter.addListener(
+      'managedConfigChanged',
+      (config: ManagedConfig) => {
+        cachedConfig = config;
 
-      if (callback && typeof callback === 'function') {
-        callback(config);
+        if (callback && typeof callback === 'function') {
+          callback(config);
+        }
       }
-    });
+    );
   },
   authenticate: async (opts: AuthenticateConfig) => {
     try {
