@@ -45,7 +45,7 @@ const ConfigItem = ({ label, value }: ItemProps) => {
 };
 
 const ManagedConfig = () => {
-  const managed = useManagedConfig();
+  const managed = useManagedConfig<Record<string, any>>();
   const isDarkMode = useColorScheme() === 'dark';
   const color = isDarkMode ? Colors.white : Colors.black;
 
