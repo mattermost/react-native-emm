@@ -205,14 +205,13 @@ class EmmModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
     exitProcess(0)
   }
 
-  @ReactMethod
-  fun getManagedConfig(promise: Promise) {
-    try {
+  @ReactMethod(isBlockingSynchronousMethod = true)
+  fun getManagedConfig(): WritableMap {
+    return try {
       val managed = loadManagedConfig(this.reactApplicationContext, false)
-      val result: Any = Arguments.fromBundle(managed)
-      promise.resolve(result)
+      Arguments.fromBundle(managed);
     } catch (e: Exception) {
-      promise.resolve(Arguments.createMap())
+      Arguments.createMap()
     }
   }
 

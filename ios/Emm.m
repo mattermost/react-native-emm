@@ -14,9 +14,7 @@ RCT_EXTERN_METHOD(enableBlurScreen:(BOOL)enabled)
 
 RCT_EXTERN_METHOD(exitApp)
 
-RCT_EXTERN_METHOD(getManagedConfig:
-                 (RCTPromiseResolveBlock)resolve
-                 withRejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN__BLOCKING_SYNCHRONOUS_METHOD(getManagedConfig)
 
 RCT_EXTERN_METHOD(setAppGroupId:(NSString)identifier)
 

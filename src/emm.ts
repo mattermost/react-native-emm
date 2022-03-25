@@ -11,7 +11,6 @@ import type {
 } from './types/authenticate';
 import type {
   EnterpriseMobilityManager,
-  ManagedConfig,
   ManagedConfigCallBack,
 } from './types/managed';
 
@@ -19,21 +18,15 @@ const { Emm } = NativeModules;
 
 const emitter =
   Platform.OS === 'ios' ? new NativeEventEmitter(Emm) : DeviceEventEmitter;
-let cachedConfig: ManagedConfig = {};
 
 const EMM: EnterpriseMobilityManager = {
   ...Emm,
-  addListener: (callback: ManagedConfigCallBack) => {
-    return emitter.addListener(
-      'managedConfigChanged',
-      (config: ManagedConfig) => {
-        cachedConfig = config;
-
-        if (callback && typeof callback === 'function') {
-          callback(config);
-        }
+  addListener: <T>(callback: ManagedConfigCallBack<T>) => {
+    return emitter.addListener('managedConfigChanged', (config: T) => {
+      if (callback && typeof callback === 'function') {
+        callback(config);
       }
-    );
+    });
   },
   authenticate: async (opts: AuthenticateConfig) => {
     try {
@@ -51,18 +44,7 @@ const EMM: EnterpriseMobilityManager = {
       return false;
     }
   },
-  getManagedConfig: async () => {
-    if (Object.keys(cachedConfig).length > 0) {
-      return cachedConfig;
-    }
-
-    const config = await Emm.getManagedConfig();
-    if (config) {
-      cachedConfig = config;
-    }
-
-    return cachedConfig;
-  },
+  getManagedConfig: <T>() => Emm.getManagedConfig() as T,
   isDeviceSecured: async () => {
     try {
       const result: AuthenticationMethods = await Emm.deviceSecureWith();

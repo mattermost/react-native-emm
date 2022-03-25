@@ -7,27 +7,24 @@ import React, {
   ComponentType,
 } from 'react';
 import Emm from './emm';
-import type { AuthenticateConfig } from './types/authenticate';
-import type { ManagedConfig } from './types/managed';
 
 const initialContext = {};
 const Context = createContext<any>(initialContext);
 
-export function useManagedConfig<T extends ManagedConfig>(): T {
+export function useManagedConfig<T>(): T {
   return useContext<T>(Context);
 }
 
 export const Provider: FunctionComponent = ({ children }) => {
-  const [managed, setManaged] = useState<Record<string, any>>(initialContext);
+  const [managed, setManaged] = useState<unknown>(initialContext);
 
   useEffect(() => {
-    Emm.getManagedConfig().then((config: AuthenticateConfig) => {
-      setManaged(config);
-    });
+    const config = Emm.getManagedConfig<unknown>();
+    setManaged(config);
   }, []);
 
   useEffect(() => {
-    const listener = Emm.addListener((config: AuthenticateConfig) => {
+    const listener = Emm.addListener((config: unknown) => {
       setManaged(config);
     });
 
@@ -39,17 +36,13 @@ export const Provider: FunctionComponent = ({ children }) => {
   return <Context.Provider value={managed}>{children}</Context.Provider>;
 };
 
-export type WithManagedConfigProps = {
-  managedConfig: ManagedConfig;
-};
-
-export function withManagedConfig<T extends WithManagedConfigProps>(
+export function withManagedConfig<T>(
   Component: ComponentType<T>
 ): ComponentType<T> {
   return function ManagedConfigComponent(props) {
     return (
       <Context.Consumer>
-        {(managedConfig: ManagedConfig) => (
+        {(managedConfig: T) => (
           <Component {...props} managedConfig={managedConfig} />
         )}
       </Context.Consumer>

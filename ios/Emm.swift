@@ -263,13 +263,13 @@ class ReactNativeEmm: RCTEventEmitter {
         exit(0)
     }
     
-    @objc(getManagedConfig:withRejecter:)
-    func getManagedConfig(resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
+    @objc(getManagedConfig)
+    func getManagedConfig() -> Dictionary<String, Any> {
         let config = managedConfig()
         if ((config) != nil) {
-            resolve(config)
+            return config!
         } else {
-            resolve({})
+            return Dictionary<String, Any>()
         }
     }
     
