@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/react-native-emm",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "React Native package for EMM managed configurations",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
