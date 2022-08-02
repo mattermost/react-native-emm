@@ -2,11 +2,14 @@ import React, {
   createContext,
   useEffect,
   useState,
-  FunctionComponent,
   useContext,
   ComponentType,
 } from 'react';
 import Emm from './emm';
+
+interface Props {
+  children: React.ReactNode;
+}
 
 const initialContext = {};
 const Context = createContext<any>(initialContext);
@@ -15,7 +18,7 @@ export function useManagedConfig<T>(): T {
   return useContext<T>(Context);
 }
 
-export const Provider: FunctionComponent = ({ children }) => {
+export const Provider = ({ children }: Props) => {
   const [managed, setManaged] = useState<unknown>(initialContext);
 
   useEffect(() => {
