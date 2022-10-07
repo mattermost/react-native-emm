@@ -39,10 +39,10 @@ export const Provider = ({ children }: Props) => {
   return <Context.Provider value={managed}>{children}</Context.Provider>;
 };
 
-export function withManagedConfig<T extends JSX.IntrinsicAttributes = {}>(
-  Component: ComponentType<T>
-): ComponentType<T> {
-  return function ManagedConfigComponent(props: T) {
+export function withManagedConfig<T, P extends JSX.IntrinsicAttributes = {}>(
+  Component: ComponentType<P & { managedConfig: T }>
+): ComponentType<P> {
+  return function ManagedConfigComponent(props: P) {
     return (
       <Context.Consumer>
         {(managedConfig: T) => (
