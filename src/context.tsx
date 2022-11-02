@@ -11,7 +11,7 @@ interface Props {
   children: React.ReactNode;
 }
 
-const initialContext = {};
+const initialContext = Emm.getManagedConfig<unknown>();
 const Context = createContext<any>(initialContext);
 
 export function useManagedConfig<T>(): T {
@@ -19,12 +19,7 @@ export function useManagedConfig<T>(): T {
 }
 
 export const Provider = ({ children }: Props) => {
-  const [managed, setManaged] = useState<unknown>(initialContext);
-
-  useEffect(() => {
-    const config = Emm.getManagedConfig<unknown>();
-    setManaged(config);
-  }, []);
+  const [managed, setManaged] = useState<unknown>(Emm.getManagedConfig());
 
   useEffect(() => {
     const listener = Emm.addListener((config: unknown) => {
