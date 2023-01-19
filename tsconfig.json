@@ -2,15 +2,18 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@mattermost/react-native-emm": ["./src/index"]
+      "@mattermost/react-native-emm": ["./src/index.ts"]
     },
+    "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "esModuleInterop": true,
     "importsNotUsedAsValues": "error",
     "forceConsistentCasingInFileNames": true,
-    "jsx": "react",
+    "jsx": "react-native",
     "lib": ["esnext"],
+    "types": ["react-native", "jest"],
+    "isolatedModules": true,
     "module": "esnext",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
@@ -22,6 +25,6 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "esnext"
-  }
+    "target": "esnext",
+  },
 }
