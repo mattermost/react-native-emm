@@ -1,11 +1,11 @@
-import React, { FunctionComponent } from 'react';
+import React, { type FunctionComponent } from 'react';
 import {
   Pressable,
-  PressableProps,
-  PressableStateCallbackType,
-  StyleProp,
+  type PressableProps,
+  type PressableStateCallbackType,
+  type StyleProp,
   StyleSheet,
-  ViewStyle,
+  type ViewStyle,
 } from 'react-native';
 
 const ripple = {

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import { Provider } from '@mattermost/react-native-emm';
 

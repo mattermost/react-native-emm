@@ -3,7 +3,7 @@ import React, {
   useEffect,
   useState,
   useContext,
-  ComponentType,
+  type ComponentType,
 } from 'react';
 import Emm from './emm';
 
