@@ -1,6 +1,4 @@
 import {
-  DeviceEventEmitter,
-  NativeModules,
   NativeEventEmitter,
   Platform,
 } from 'react-native';
@@ -14,18 +12,14 @@ import type {
   ManagedConfigCallBack,
 } from './types/managed';
 
-const { Emm } = NativeModules;
+import RNEmm from './emm-native';
 
-const emitter =
-  Platform.OS === 'ios' ? new NativeEventEmitter(Emm) : DeviceEventEmitter;
+const emitter = new NativeEventEmitter(RNEmm);
 
-const EMM: EnterpriseMobilityManager = {
-  ...Emm,
+const Emm: EnterpriseMobilityManager = {
   addListener: <T>(callback: ManagedConfigCallBack<T>) => {
     return emitter.addListener('managedConfigChanged', (config: T) => {
-      if (callback && typeof callback === 'function') {
-        callback(config);
-      }
+      callback(config);
     });
   },
   authenticate: async (opts: AuthenticateConfig) => {
@@ -37,17 +31,17 @@ const EMM: EnterpriseMobilityManager = {
         supressEnterPassword: opts.supressEnterPassword || false,
       };
 
-      await Emm.authenticate(options);
+      await RNEmm.authenticate(options);
 
       return true;
     } catch {
       return false;
     }
   },
-  getManagedConfig: <T>() => Emm.getManagedConfig() as T,
+  getManagedConfig: <T>() => RNEmm.getManagedConfig() as T,
   isDeviceSecured: async () => {
     try {
-      const result: AuthenticationMethods = await Emm.deviceSecureWith();
+      const result: AuthenticationMethods = await RNEmm.deviceSecureWith();
       return result.face || result.fingerprint || result.passcode;
     } catch {
       return false;
@@ -55,14 +49,23 @@ const EMM: EnterpriseMobilityManager = {
   },
   openSecuritySettings: () => {
     if (Platform.OS === 'android') {
-      Emm.openSecuritySettings();
+      RNEmm.openSecuritySettings();
     }
   },
   setAppGroupId: (identifier: string) => {
     if (Platform.OS === 'ios') {
-      Emm.setAppGroupId(identifier);
+      RNEmm.setAppGroupId(identifier);
     }
   },
+  deviceSecureWith: function (): Promise<AuthenticationMethods> {
+    return RNEmm.deviceSecureWith();
+  },
+  enableBlurScreen: function (enabled: boolean): void {
+    return RNEmm.setBlurScreen(enabled);
+  },
+  exitApp: function (): void {
+    RNEmm.exitApp();
+  }
 };
 
-export default EMM;
+export default Emm;
