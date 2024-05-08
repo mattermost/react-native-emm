@@ -89,11 +89,11 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  activesupport (>= 6.1.7.3, < 7.1.0)
-  cocoapods (= 1.14.3)
+  activesupport (>= 6.1.7.5, < 7.1.0)
+  cocoapods (>= 1.13, < 1.15)
 
 RUBY VERSION
    ruby 2.7.8p225
 
 BUNDLED WITH
-   2.1.4
+   2.3.26
