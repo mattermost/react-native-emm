@@ -68,7 +68,7 @@ const Authentication = () => {
     } else {
       Alert.alert(
         'Authentication Error',
-        'There are no authentication methods availble i this device'
+        'There are no authentication methods availble in this device'
       );
     }
   };
