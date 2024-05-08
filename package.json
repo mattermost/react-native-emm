@@ -80,7 +80,10 @@
   "codegenConfig": {
     "name": "EmmSpec",
     "type": "modules",
-    "jsSrcsDir": "./src"
+    "jsSrcsDir": "./src",
+    "android": {
+      "javaPackageName": "com.mattermost.emm"
+    }
   },
   "jest": {
     "preset": "react-native",
