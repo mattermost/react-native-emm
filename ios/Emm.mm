@@ -32,21 +32,11 @@
 
 RCT_EXPORT_MODULE(Emm)
 
-#ifdef RCT_NEW_ARCH_ENABLED
-RCT_REMAP_METHOD(authenticate, options:(JS::NativeEmm::AuthenticateConfig &)options
-                  withResolver:(RCTPromiseResolveBlock)resolve
-                 withRejecter:(RCTPromiseRejectBlock)reject) {
-    [self authenticate:options resolve:resolve reject:reject];
-}
-#else
-
 RCT_REMAP_METHOD(authenticate, options:(NSDictionary *)options
                   withResolver:(RCTPromiseResolveBlock)resolve
                  withRejecter:(RCTPromiseRejectBlock)reject) {
-    [self authenticate:options resolve:resolve reject:reject];
+    [wrapper authenticateWithOptions:options resolve:resolve reject:reject];
 }
-
-#endif
 
 RCT_REMAP_METHOD(deviceSecureWith, withResolver:(RCTPromiseResolveBlock)resolve
                  withRejecter:(RCTPromiseRejectBlock)reject) {
@@ -116,11 +106,6 @@ RCT_REMAP_METHOD(setBlurScreen, enabled:(BOOL)enabled) {
     [wrapper authenticateWithOptions:dict resolve:resolve reject:reject];
 }
 
-#else
-
-- (void)authenticate:(NSDictionary *)options resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
-    [wrapper authenticateWithOptions:options resolve:resolve reject:reject];
-}
 #endif
 
 
