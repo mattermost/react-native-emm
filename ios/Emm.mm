@@ -18,6 +18,7 @@
 
 @implementation Emm {
     EmmWrapper *wrapper;
+    bool hasListeners;
 }
 
 -(instancetype)init {
@@ -28,6 +29,15 @@
         [wrapper captureEvents];
     }
     return self;
+}
+
+-(void)startObserving {
+    hasListeners = YES;
+}
+
+// Will be called when this module's last listener is removed, or on dealloc.
+-(void)stopObserving {
+    hasListeners = NO;
 }
 
 RCT_EXPORT_MODULE(Emm)
@@ -70,7 +80,9 @@ RCT_REMAP_METHOD(setBlurScreen, enabled:(BOOL)enabled) {
 #pragma protocol
 
 - (void)sendEventWithName:(NSString * _Nonnull)name result:(NSDictionary<NSString *,id> * _Nullable)result {
-    [self sendEventWithName:name body:result];
+    if (hasListeners) {
+        [self sendEventWithName:name body:result];
+    }
 }
 
 - (NSArray<NSString *> *)supportedEvents {

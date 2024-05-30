@@ -14,7 +14,6 @@ import android.view.WindowManager
 import androidx.biometric.BiometricManager
 import androidx.collection.ArraySet
 import com.facebook.react.bridge.*
-import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import kotlin.system.exitProcess
 
 class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
@@ -161,12 +160,13 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
   }
 
   private fun sendConfigChanged(config: Bundle?) {
-    var result = Arguments.createMap()
-    if (config != null) {
-      result = Arguments.fromBundle(config)
+    if (context.hasActiveReactInstance()) {
+      var result = Arguments.createMap()
+      if (config != null) {
+        result = Arguments.fromBundle(config)
+      }
+      context.emitDeviceEvent("managedConfigChanged", result)
     }
-
-    context.getJSModule(RCTDeviceEventEmitter::class.java)?.emit("managedConfigChanged", result)
   }
 
   private fun equalBundles(one: Bundle?, two: Bundle?): Boolean {
