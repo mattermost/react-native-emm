@@ -9,14 +9,15 @@
     "start": "react-native start"
   },
   "dependencies": {
+    "@mattermost/react-native-emm": "../",
     "react": "18.2.0",
-    "react-native": "0.73.6"
+    "react-native": "0.74.1"
   },
   "devDependencies": {
-    "@babel/core": "7.23.3",
-    "@babel/runtime": "7.23.4",
-    "@react-native/babel-preset": "0.73.21",
-    "@types/react": "18.2.37",
-    "babel-plugin-module-resolver": "5.0.0"
+    "@babel/core": "7.24.5",
+    "@babel/runtime": "7.24.5",
+    "@react-native/babel-preset": "0.74.83",
+    "@types/react": "18.3.1",
+    "babel-plugin-module-resolver": "5.0.2"
   }
 }
