@@ -81,6 +81,12 @@ extension UIViewController {
             
         }
         
+        if let nativeId = targetView.nativeID,
+           nativeId.contains("skip.shielded") {
+            print("🛑 >>> Skipping protection for: \(nativeId)")
+            return
+        }
+        
         print("✅ Applying screen capture protection to: \(targetView.nativeID ?? "Unknown View")")
         var isModal = self.isModalInPresentation
         if let navigationController = self.navigationController,

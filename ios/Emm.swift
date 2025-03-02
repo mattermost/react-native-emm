@@ -19,36 +19,38 @@ import React
     }
     
     @objc public func invalidate() {
-            NotificationCenter.default.removeObserver(self)
-        }
-        
-        @objc public func authenticate(options:Dictionary<String, Any>, resolve:(@escaping RCTPromiseResolveBlock), reject:(@escaping RCTPromiseRejectBlock)) {
-            DispatchQueue.global(qos: .userInitiated).async {
-                let reason = options["reason"] as! String
-                let fallback = options["fallback"] as! Bool
-                let supressEnterPassword = options["supressEnterPassword"] as! Bool
-                ScreenCaptureManager.shared.isAuthenticating = true
-                ScreenCaptureManager.shared.blurOnAuthenticate = options["blurOnAuthenticate"] as? Bool ?? false
-                self.authenticateWithPolicy(policy: .deviceOwnerAuthenticationWithBiometrics, reason: reason, fallback: fallback, supressEnterPassword: supressEnterPassword, completionHandler: {(success: Bool, error: Error?) in
-                    if success && ScreenCaptureManager.shared.blurOnAuthenticate {
+        ScreenCaptureManager.shared.removeBlurEffect(forced: true)
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc public func authenticate(options:Dictionary<String, Any>, resolve:(@escaping RCTPromiseResolveBlock), reject:(@escaping RCTPromiseRejectBlock)) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let reason = options["reason"] as! String
+            let fallback = options["fallback"] as! Bool
+            let supressEnterPassword = options["supressEnterPassword"] as! Bool
+            ScreenCaptureManager.shared.isAuthenticating = true
+            ScreenCaptureManager.shared.blurOnAuthenticate = options["blurOnAuthenticate"] as? Bool ?? false
+            ScreenCaptureManager.shared.applyBlurEffect()
+            self.authenticateWithPolicy(policy: .deviceOwnerAuthenticationWithBiometrics, reason: reason, fallback: fallback, supressEnterPassword: supressEnterPassword, completionHandler: {(success: Bool, error: Error?) in
+                if success && ScreenCaptureManager.shared.blurOnAuthenticate {
+                    ScreenCaptureManager.shared.isAuthenticating = false
+                    ScreenCaptureManager.shared.removeBlurEffect(forced: true)
+                } else {
+                    DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.5) {
                         ScreenCaptureManager.shared.isAuthenticating = false
-                        ScreenCaptureManager.shared.removeBlurEffect(forced: true)
-                    } else {
-                        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.5) {
-                            ScreenCaptureManager.shared.isAuthenticating = false
-                        }
                     }
-                    
-                    if (error != nil) {
-                        let errorReason = self.errorMessageForFails(errorCode: (error! as NSError).code)
-                        reject("error", errorReason, error)
-                        return
-                    }
-                    
-                    resolve(true)
-                })
-            }
+                }
+                
+                if (error != nil) {
+                    let errorReason = self.errorMessageForFails(errorCode: (error! as NSError).code)
+                    reject("error", errorReason, error)
+                    return
+                }
+                
+                resolve(true)
+            })
         }
+    }
     
     @objc public func deviceSecureWith(resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
         var result = [
@@ -82,11 +84,11 @@ import React
         
         resolve(result)
     }
-
+    
     @objc public func setBlurScreen(enabled: Bool) {
         ScreenCaptureManager.shared.preventScreenCapture = enabled
     }
-
+    
     @objc public func exitApp() -> Void {
         exit(0)
     }

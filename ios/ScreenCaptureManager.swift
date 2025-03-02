@@ -185,8 +185,7 @@
     
     @objc public func removeBlurEffect(forced: Bool = false) {
         DispatchQueue.main.async {
-            if self.blurView != nil && ((!UIScreen.main.isCaptured && !self.isAuthenticating) || forced),
-               let window = self.getKeyWindow() {
+            if self.blurView != nil && ((!UIScreen.main.isCaptured && !self.isAuthenticating) || forced) {
                 self.blurView?.removeFromSuperview()
                 self.blurView = nil
             }
