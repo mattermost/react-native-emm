@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.os.CancellationSignal
 import android.provider.Settings
 import android.util.Log
+import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
@@ -23,11 +24,15 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
+import eightbitlab.com.blurview.BlurView
+import eightbitlab.com.blurview.RenderEffectBlur
+import eightbitlab.com.blurview.RenderScriptBlur
 import java.util.concurrent.Executor
 import kotlin.system.exitProcess
 
 class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
     private var blurEnabled: Boolean = false
+    private var blurView: BlurView? = null
 
 
     private var managedConfig: Bundle? = null
@@ -94,6 +99,7 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
 
         val reason = map.getString("reason") ?: "Authenticate"
         val description = map.getString("description") ?: "Please authenticate to continue"
+        val blurOnAuthenticate = map.getBoolean("blurOnAuthenticate") ?: false
         val maxRetries = 3
         var failedAttempts = 0
 
@@ -116,6 +122,9 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
 
             val executor: Executor = ContextCompat.getMainExecutor(activity.applicationContext)
 
+            if (blurOnAuthenticate) {
+                applyBlurEffect(8f)
+            }
             val biometricPrompt = BiometricPrompt(activity, executor, object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     super.onAuthenticationError(errorCode, errString)
@@ -136,6 +145,9 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
+                    if (blurOnAuthenticate) {
+                        removeBlurEffect()
+                    }
                     promise?.resolve(true)
                 }
 
@@ -259,5 +271,45 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
             } else if (valueOne != valueTwo) return false
         }
         return true
+    }
+
+    fun applyBlurEffect(radius: Float) {
+        val activity: Activity? = context.currentActivity
+        activity?.runOnUiThread {
+            val decorView = activity.window.decorView as ViewGroup
+            val rootView = activity.findViewById<ViewGroup>(android.R.id.content)
+
+            if (blurView == null) {
+                val blurAlgorithm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    RenderEffectBlur()
+                } else {
+                    RenderScriptBlur(context)
+                }
+                blurView = BlurView(activity).apply {
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+
+                    setupWith(rootView, blurAlgorithm)
+                        .setFrameClearDrawable(decorView.background)
+                        .setBlurRadius(radius)
+                        .setBlurAutoUpdate(true)
+                }
+
+                rootView.addView(blurView)
+            }
+        }
+    }
+
+    fun removeBlurEffect() {
+        val activity: Activity? = context.currentActivity
+        activity?.runOnUiThread {
+            val rootView = activity.findViewById<ViewGroup>(android.R.id.content)
+            blurView?.let {
+                rootView.removeView(it)
+                blurView = null
+            }
+        }
     }
 }
