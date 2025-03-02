@@ -14,6 +14,10 @@ export interface EnterpriseMobilityManager {
 
   enableBlurScreen(enabled: boolean): void;
 
+  applyBlurEffect: (radius: number) => void;
+
+  removeBlurEffect: () => void;
+
   exitApp(): void;
 
   getManagedConfig<T>(): T;

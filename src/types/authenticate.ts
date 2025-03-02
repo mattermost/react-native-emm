@@ -3,6 +3,7 @@ export type AuthenticateConfig = {
   description?: string;
   fallback?: boolean;
   supressEnterPassword?: boolean;
+  blurOnAuthenticate?: boolean;
 };
 
 export type AuthenticationMethods = {
