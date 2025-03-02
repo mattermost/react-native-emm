@@ -69,6 +69,14 @@ RCT_REMAP_METHOD(setBlurScreen, enabled:(BOOL)enabled) {
     [self setBlurScreen:enabled];
 }
 
+RCT_REMAP_METHOD(applyBlurEffect, radius:(CGFloat)radius) {
+    [self applyBlurEffect:radius];
+}
+
+RCT_REMAP_METHOD(removeBlurEffect, removeBlur) {
+    [self removeBlurEffect];
+}
+
 #ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params
@@ -148,6 +156,14 @@ RCT_REMAP_METHOD(setBlurScreen, enabled:(BOOL)enabled) {
 
 - (void)setBlurScreen:(BOOL)enabled { 
     [wrapper setBlurScreenWithEnabled:enabled];
+}
+
+-(void)applyBlurEffect:(CGFloat)radius {
+    [[ScreenCaptureManager shared] applyBlurEffectWithRadius:radius];
+}
+
+-(void)removeBlurEffect {
+    [[ScreenCaptureManager shared] removeBlurEffectWithForced:true];
 }
 
 @end

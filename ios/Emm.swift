@@ -7,35 +7,48 @@ import React
     @objc public weak var delegate: EmmDelegate? = nil
     
     // The Managed app configuration dictionary pushed down from an EMM provider are stored in this key.
-    var configurationKey = "com.apple.configuration.managed"
-    var blurViewTag = 8065
-    var appGroupId:String?
-    var hasListeners = false
-    var blurScreen = false
-    var sharedUserDefaults:UserDefaults?
+    internal var hasListeners = false
+    internal var configurationKey = "com.apple.configuration.managed"
+    internal var appGroupId:String?
+    internal var sharedUserDefaults:UserDefaults?
     
     @objc public func captureEvents() {
         NotificationCenter.default.addObserver(self, selector: #selector(managedConfigChaged(notification:)), name: UserDefaults.didChangeNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(handleAppStateResignActive), name: UIApplication.willResignActiveNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(handleAppStateActive), name: UIApplication.didBecomeActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(ScreenCaptureManager.shared, selector: #selector(ScreenCaptureManager.applyBlurEffect(radius:)), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(ScreenCaptureManager.shared, selector: #selector(ScreenCaptureManager.removeBlurEffect), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
     
-    @objc public func authenticate(options:Dictionary<String, Any>, resolve:(@escaping RCTPromiseResolveBlock), reject:(@escaping RCTPromiseRejectBlock)) {
-        DispatchQueue.global(qos: .userInitiated).async {
-            let reason = options["reason"] as! String
-            let fallback = options["fallback"] as! Bool
-            let supressEnterPassword = options["supressEnterPassword"] as! Bool
-            self.authenticateWithPolicy(policy: .deviceOwnerAuthenticationWithBiometrics, reason: reason, fallback: fallback, supressEnterPassword: supressEnterPassword, completionHandler: {(success: Bool, error: Error?) in
-                if (error != nil) {
-                    let errorReason = self.errorMessageForFails(errorCode: (error! as NSError).code)
-                    reject("error", errorReason, error)
-                    return
-                }
-                
-                resolve(true)
-            })
+    @objc public func invalidate() {
+            NotificationCenter.default.removeObserver(self)
         }
-    }
+        
+        @objc public func authenticate(options:Dictionary<String, Any>, resolve:(@escaping RCTPromiseResolveBlock), reject:(@escaping RCTPromiseRejectBlock)) {
+            DispatchQueue.global(qos: .userInitiated).async {
+                let reason = options["reason"] as! String
+                let fallback = options["fallback"] as! Bool
+                let supressEnterPassword = options["supressEnterPassword"] as! Bool
+                ScreenCaptureManager.shared.isAuthenticating = true
+                ScreenCaptureManager.shared.blurOnAuthenticate = options["blurOnAuthenticate"] as? Bool ?? false
+                self.authenticateWithPolicy(policy: .deviceOwnerAuthenticationWithBiometrics, reason: reason, fallback: fallback, supressEnterPassword: supressEnterPassword, completionHandler: {(success: Bool, error: Error?) in
+                    if success && ScreenCaptureManager.shared.blurOnAuthenticate {
+                        ScreenCaptureManager.shared.isAuthenticating = false
+                        ScreenCaptureManager.shared.removeBlurEffect(forced: true)
+                    } else {
+                        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.5) {
+                            ScreenCaptureManager.shared.isAuthenticating = false
+                        }
+                    }
+                    
+                    if (error != nil) {
+                        let errorReason = self.errorMessageForFails(errorCode: (error! as NSError).code)
+                        reject("error", errorReason, error)
+                        return
+                    }
+                    
+                    resolve(true)
+                })
+            }
+        }
     
     @objc public func deviceSecureWith(resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
         var result = [
@@ -71,7 +84,7 @@ import React
     }
 
     @objc public func setBlurScreen(enabled: Bool) {
-        self.blurScreen = enabled
+        ScreenCaptureManager.shared.preventScreenCapture = enabled
     }
 
     @objc public func exitApp() -> Void {
