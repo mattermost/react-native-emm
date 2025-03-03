@@ -169,7 +169,9 @@
         ) {
             DispatchQueue.main.async {
                 if let window = self.getKeyWindow() {
-                    self.blurView = UIImageView()
+                    if self.blurView == nil {
+                        self.blurView = UIImageView()
+                    }
                     guard let blurView = self.blurView else { return }
                     var cover = self.screenShot(window: window)
                     blurView.frame = window.frame
@@ -184,7 +186,7 @@
     }
     
     @objc public func removeBlurEffect(forced: Bool = false) {
-        DispatchQueue.main.async {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             if self.blurView != nil && ((!UIScreen.main.isCaptured && !self.isAuthenticating) || forced) {
                 self.blurView?.removeFromSuperview()
                 self.blurView = nil
