@@ -1,11 +1,12 @@
 import {type TurboModule, TurboModuleRegistry} from 'react-native';
-import type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
+import type { Float, UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 
 type AuthenticateConfig = {
   reason?: string;
   description?: string;
   fallback?: boolean;
   supressEnterPassword?: boolean;
+  blurOnAuthenticate?: boolean;
 };
 
 type AuthenticationMethods = {
@@ -27,6 +28,8 @@ export interface Spec extends TurboModule {
     openSecuritySettings: () => void;
     setAppGroupId: (identifier: string) => void;
     setBlurScreen: (enabled: boolean) => void;
+    applyBlurEffect: (radius: Float) => void;
+    removeBlurEffect: () => void;
 };
 
 export default TurboModuleRegistry.get<Spec>('Emm');

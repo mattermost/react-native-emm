@@ -100,4 +100,12 @@ class EmmModule(reactContext: ReactApplicationContext) : NativeEmmSpec(reactCont
   override fun removeListeners(count: Double) {
     // Keep: Required for RN built in Event Emitter Calls
   }
+
+  override fun applyBlurEffect(radius: Float = 10f) {
+    implementation.applyBlurEffect(radius)
+  }
+
+  override fun removeBlurEffect() {
+    implementation.removeBlurEffect()
+  }
 }

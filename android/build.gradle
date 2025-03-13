@@ -55,5 +55,6 @@ repositories {
 
 dependencies {
   implementation 'com.facebook.react:react-native'
-  implementation "androidx.biometric:biometric:1.0.1"
+  implementation "androidx.biometric:biometric:1.1.0"
+  implementation 'com.github.Dimezis:BlurView:version-2.0.3'
 }

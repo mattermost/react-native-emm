@@ -1,6 +1,26 @@
 import LocalAuthentication
+import UIKit
 
 extension EmmWrapper {
+        private func showBlockingView() {
+            DispatchQueue.main.async {
+                guard let window = ScreenCaptureManager.shared.getLastKeyWindow() else { return }
+                let blockingView = UIView(frame: window.bounds)
+                blockingView.backgroundColor = UIColor.black.withAlphaComponent(0.5) // Optional: semi-transparent
+                blockingView.tag = 999 // Unique tag to identify the view later
+                window.addSubview(blockingView)
+            }
+        }
+        
+        private func removeBlockingView() {
+            DispatchQueue.main.async {
+                guard let window = ScreenCaptureManager.shared.getLastKeyWindow() else { return }
+                if let blockingView = window.viewWithTag(999) {
+                    blockingView.removeFromSuperview()
+                }
+            }
+        }
+
         func authenticateWithPolicy(policy: LAPolicy, reason: String, fallback: Bool, supressEnterPassword: Bool, completionHandler: @escaping (Bool, Error?) -> Void) -> Void {
             let context = LAContext()
             if (supressEnterPassword) {
@@ -31,8 +51,11 @@ extension EmmWrapper {
                     }
                 }
             }
+
+            self.showBlockingView();
     
             context.evaluatePolicy(policy, localizedReason: reason, reply: {(success: Bool, error: Error?) in
+                self.removeBlockingView();
                 if (error != nil) {
                     completionHandler(false, error)
                     return

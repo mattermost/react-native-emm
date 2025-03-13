@@ -29,6 +29,7 @@ const Emm: EnterpriseMobilityManager = {
         description: opts.description || '',
         fallback: opts.fallback || true,
         supressEnterPassword: opts.supressEnterPassword || false,
+        blurOnAuthenticate: opts.blurOnAuthenticate || false,
       };
 
       await RNEmm.authenticate(options);
@@ -63,6 +64,8 @@ const Emm: EnterpriseMobilityManager = {
   enableBlurScreen: function (enabled: boolean): void {
     return RNEmm.setBlurScreen(enabled);
   },
+  applyBlurEffect: (radius = 8) => RNEmm.applyBlurEffect(radius),
+  removeBlurEffect: () => RNEmm.removeBlurEffect(),
   exitApp: function (): void {
     RNEmm.exitApp();
   }

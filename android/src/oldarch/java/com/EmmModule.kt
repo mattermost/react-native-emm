@@ -106,4 +106,14 @@ class EmmModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
   fun removeListeners(count: Int) {
     // Keep: Required for RN built in Event Emitter Calls
   }
+
+    @ReactMethod
+    fun applyBlurEffect(radius: Float = 10f) {
+        implementation.applyBlurEffect(radius)
+    }
+
+    @ReactMethod
+    fun removeBlurEffect() {
+        implementation.removeBlurEffect()
+    }
 }
