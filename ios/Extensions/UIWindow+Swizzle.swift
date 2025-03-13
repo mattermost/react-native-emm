@@ -1,16 +1,5 @@
 extension UIWindow {
-    private struct AssociatedKeys {
-        static var isBeingSwizzled: UnsafeRawPointer = UnsafeRawPointer(UnsafeMutablePointer<UInt8>.allocate(capacity: 1))
-    }
-
-    private var isBeingSwizzled: Bool {
-        get {
-            return objc_getAssociatedObject(self, AssociatedKeys.isBeingSwizzled) as? Bool ?? false
-        }
-        set {
-            objc_setAssociatedObject(self, AssociatedKeys.isBeingSwizzled, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
-    }
+    private static var originalSetWindowLevel: IMP?
 
     static let swizzleRNNOverlayPresentation: Void = {
         guard let targetClass = NSClassFromString("RNNOverlayWindow") as? UIWindow.Type else {
@@ -30,6 +19,8 @@ extension UIWindow {
             return
         }
         
+        originalSetWindowLevel = method_getImplementation(originalMethod)
+        
         let didAddMethod = class_addMethod(
             targetClass,
             swizzled,
@@ -46,23 +37,33 @@ extension UIWindow {
     }
     
     @objc private func swizzled_setWindowLevel(_ level: UIWindow.Level) {
-        // Prevent infinite recursion
-        guard !isBeingSwizzled else { return }
-        isBeingSwizzled = true
-
-        print("[RNN Overlay] Overlay visibility changed to: \(level.rawValue) - \(self)")
+        let windowClassName = String(describing: type(of: self))
+        print("Window Class: \(windowClassName)")
         
-        if level == .normal && ScreenCaptureManager.shared.preventScreenCapture,
-           let rootVC = self.rootViewController {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                ScreenCaptureManager.shared.logLayerHierarchy(rootVC)
-                rootVC.applyScreenCaptureProtection()
+        // Ensure the method only runs for RNNOverlayWindow
+        if let windowClass = NSClassFromString("RNNOverlayWindow"), type(of: self) == windowClass {
+            print("[RNN Overlay] Overlay visibility changed to: \(level.rawValue) - \(self)")
+
+            if level == .normal && ScreenCaptureManager.shared.preventScreenCapture,
+               let rootVC = self.rootViewController {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    ScreenCaptureManager.shared.logLayerHierarchy(rootVC)
+                    rootVC.applyScreenCaptureProtection()
+                }
             }
         }
-        
-        // Call the original method (now swizzled)
-        swizzled_setWindowLevel(level)
-        
-        isBeingSwizzled = false
+
+        // Always call the original method at the end
+        callOriginalSetWindowLevel(level)
+    }
+
+    
+    private func callOriginalSetWindowLevel(_ level: UIWindow.Level) {
+        guard let originalIMP = UIWindow.originalSetWindowLevel else { return }
+
+        typealias Function = @convention(c) (AnyObject, Selector, UIWindow.Level) -> Void
+        let function = unsafeBitCast(originalIMP, to: Function.self)
+
+        function(self, #selector(setter: UIWindow.windowLevel), level)
     }
 }
