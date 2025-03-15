@@ -110,7 +110,7 @@
     }
     
     private func applyScreenCapturePolicy() {
-        DispatchQueue.main.sync {
+        DispatchQueue.main.async {
             for rootVC in self.getAllRootViewControllers() {
                 let c = NSStringFromClass(type(of: rootVC))
                 if c.contains("RNNStackController"), let r = rootVC as? UINavigationController {
