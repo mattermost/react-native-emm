@@ -69,7 +69,7 @@ RCT_REMAP_METHOD(setBlurScreen, enabled:(BOOL)enabled) {
     [self setBlurScreen:enabled];
 }
 
-RCT_REMAP_METHOD(applyBlurEffect, radius:(CGFloat)radius) {
+RCT_REMAP_METHOD(applyBlurEffect, radius:(double)radius) {
     [self applyBlurEffect:radius];
 }
 
@@ -158,7 +158,7 @@ RCT_REMAP_METHOD(removeBlurEffect, removeBlur) {
     [wrapper setBlurScreenWithEnabled:enabled];
 }
 
--(void)applyBlurEffect:(CGFloat)radius {
+-(void)applyBlurEffect:(double)radius {
     [[ScreenCaptureManager shared] applyBlurEffectWithRadius:radius];
 }
 
