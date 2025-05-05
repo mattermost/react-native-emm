@@ -92,6 +92,8 @@ extension UIViewController {
         if let parentVC = self.parent,
            parentVC.modalPresentationStyle == .overFullScreen || parentVC.modalPresentationStyle == .fullScreen
             || parentVC.modalPresentationStyle == .overCurrentContext || parentVC.modalPresentationStyle == .currentContext {
+            // Full-screen modals (e.g., .overFullScreen, .fullScreen) should not be treated as modals
+            // for screen capture protection but rather as regular screens.
             isModalFullScreen = true
         }
         var isModal = self.isModalInPresentation
