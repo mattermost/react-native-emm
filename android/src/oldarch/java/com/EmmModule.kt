@@ -108,7 +108,7 @@ class EmmModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
   }
 
     @ReactMethod
-    fun applyBlurEffect(radius: Float = 10f) {
+    fun applyBlurEffect(radius: Double = 10.0) {
         implementation.applyBlurEffect(radius)
     }
 

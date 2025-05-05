@@ -273,7 +273,7 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
         return true
     }
 
-    fun applyBlurEffect(radius: Float) {
+    fun applyBlurEffect(radius: Double) {
         val activity: Activity? = context.currentActivity
         activity?.runOnUiThread {
             val decorView = activity.window.decorView as ViewGroup
@@ -293,7 +293,7 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
 
                     setupWith(rootView, blurAlgorithm)
                         .setFrameClearDrawable(decorView.background)
-                        .setBlurRadius(radius)
+                        .setBlurRadius(radius.toFloat())
                         .setBlurAutoUpdate(true)
                 }
 

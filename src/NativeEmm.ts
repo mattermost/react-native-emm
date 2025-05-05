@@ -1,5 +1,5 @@
 import {type TurboModule, TurboModuleRegistry} from 'react-native';
-import type { Float, UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
+import type { Double, UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 
 type AuthenticateConfig = {
   reason?: string;
@@ -28,7 +28,7 @@ export interface Spec extends TurboModule {
     openSecuritySettings: () => void;
     setAppGroupId: (identifier: string) => void;
     setBlurScreen: (enabled: boolean) => void;
-    applyBlurEffect: (radius: Float) => void;
+    applyBlurEffect: (radius: Double) => void;
     removeBlurEffect: () => void;
 };
 
