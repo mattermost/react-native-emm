@@ -101,7 +101,7 @@ class EmmModule(reactContext: ReactApplicationContext) : NativeEmmSpec(reactCont
     // Keep: Required for RN built in Event Emitter Calls
   }
 
-  override fun applyBlurEffect(radius: Double = 10.0) {
+  override fun applyBlurEffect(radius: Double) {
     implementation.applyBlurEffect(radius)
   }
 

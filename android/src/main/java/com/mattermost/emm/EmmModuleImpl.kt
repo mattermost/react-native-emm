@@ -123,7 +123,7 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
             val executor: Executor = ContextCompat.getMainExecutor(activity.applicationContext)
 
             if (blurOnAuthenticate) {
-                applyBlurEffect(8f)
+                applyBlurEffect(8.0)
             }
             val biometricPrompt = BiometricPrompt(activity, executor, object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
