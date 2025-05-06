@@ -26,7 +26,7 @@
         if self.preventScreenCapture {
             NotificationCenter.default.addObserver(
                 self,
-                selector: #selector(applyBlurEffect),
+                selector: #selector(applyBlurEffect(notification:)),
                 name: UIScreen.capturedDidChangeNotification,
                 object: nil
             )
@@ -162,7 +162,12 @@
         return screenshot ?? UIImage()
     }
     
-    @objc public func applyBlurEffect(radius: Double = 8.0) {
+    @objc func applyBlurEffect(notification: Notification) {
+        self.applyBlurEffect(radius: 10.0)
+    }
+
+    
+    @objc public func applyBlurEffect(radius: Double = 10.0) {
         if self.blurView == nil && (
                 (self.preventScreenCapture && !self.isAuthenticating) ||
                 (self.isAuthenticating && self.blurOnAuthenticate)
