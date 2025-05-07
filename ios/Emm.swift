@@ -14,7 +14,7 @@ import React
     
     @objc public func captureEvents() {
         NotificationCenter.default.addObserver(self, selector: #selector(managedConfigChaged(notification:)), name: UserDefaults.didChangeNotification, object: nil)
-        NotificationCenter.default.addObserver(ScreenCaptureManager.shared, selector: #selector(ScreenCaptureManager.applyBlurEffect(radius:)), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(ScreenCaptureManager.shared, selector: #selector(ScreenCaptureManager.applyBlurEffect(notification:)), name: UIApplication.willResignActiveNotification, object: nil)
         NotificationCenter.default.addObserver(ScreenCaptureManager.shared, selector: #selector(ScreenCaptureManager.removeBlurEffect), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
     

@@ -26,7 +26,7 @@
         if self.preventScreenCapture {
             NotificationCenter.default.addObserver(
                 self,
-                selector: #selector(applyBlurEffect),
+                selector: #selector(applyBlurEffect(notification:)),
                 name: UIScreen.capturedDidChangeNotification,
                 object: nil
             )
@@ -134,7 +134,7 @@
     }
     
     // MARK: Blur effect functions
-    func createBlurEffect(window: UIWindow, toImage image: inout UIImage, radius: CGFloat) {
+    func createBlurEffect(window: UIWindow, toImage image: inout UIImage, radius: Double) {
         let ciImage = CIImage(image: image)
         let filter = CIFilter(name: "CIGaussianBlur")
         filter?.setValue(ciImage, forKey: "inputImage")
@@ -162,7 +162,12 @@
         return screenshot ?? UIImage()
     }
     
-    @objc public func applyBlurEffect(radius: CGFloat = 8) {
+    @objc func applyBlurEffect(notification: Notification) {
+        self.applyBlurEffect(radius: 10.0)
+    }
+
+    
+    @objc public func applyBlurEffect(radius: Double = 10.0) {
         if self.blurView == nil && (
                 (self.preventScreenCapture && !self.isAuthenticating) ||
                 (self.isAuthenticating && self.blurOnAuthenticate)
@@ -178,7 +183,7 @@
                     blurView.contentMode = .scaleToFill
                     blurView.backgroundColor = UIColor.gray
                     window.addSubview(blurView)
-                    self.createBlurEffect(window: window, toImage: &cover, radius: 8)
+                    self.createBlurEffect(window: window, toImage: &cover, radius: radius)
                     blurView.image = cover
                 }
             }

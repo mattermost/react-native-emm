@@ -123,7 +123,7 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
             val executor: Executor = ContextCompat.getMainExecutor(activity.applicationContext)
 
             if (blurOnAuthenticate) {
-                applyBlurEffect(8f)
+                applyBlurEffect(8.0)
             }
             val biometricPrompt = BiometricPrompt(activity, executor, object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
@@ -273,7 +273,7 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
         return true
     }
 
-    fun applyBlurEffect(radius: Float) {
+    fun applyBlurEffect(radius: Double) {
         val activity: Activity? = context.currentActivity
         activity?.runOnUiThread {
             val decorView = activity.window.decorView as ViewGroup
@@ -293,7 +293,7 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
 
                     setupWith(rootView, blurAlgorithm)
                         .setFrameClearDrawable(decorView.background)
-                        .setBlurRadius(radius)
+                        .setBlurRadius(radius.toFloat())
                         .setBlurAutoUpdate(true)
                 }
 
