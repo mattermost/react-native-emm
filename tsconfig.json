@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
+    "rootDir": "./src",
     "paths": {
       "@mattermost/react-native-emm": ["./src/index.ts"]
     },
@@ -15,7 +15,7 @@
     "types": ["react-native", "jest"],
     "isolatedModules": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "noImplicitUseStrict": false,
@@ -27,4 +27,5 @@
     "strict": true,
     "target": "esnext",
   },
+  "exclude": ["example"]
 }
