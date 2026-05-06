@@ -159,7 +159,7 @@ RCT_REMAP_METHOD(removeBlurEffect, removeBlur) {
 }
 
 -(void)applyBlurEffect:(double)radius {
-    [[ScreenCaptureManager shared] applyBlurEffectWithIntensity:radius animated:true];
+    [[ScreenCaptureManager shared] applyBlurEffect:radius animated:true];
 }
 
 -(void)removeBlurEffect {
