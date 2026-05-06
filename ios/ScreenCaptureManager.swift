@@ -7,6 +7,7 @@
     var blurOnAuthenticate: Bool = false
     private var protectionTextField: UITextField?
     private var originalParent: CALayer?
+    private weak var protectedWindow: UIWindow?
 
     var preventScreenCapture: Bool = false {
         didSet {
@@ -59,6 +60,7 @@
     // MARK: Screenshot protection functions
     private func applyScreenCapturePolicy() {
         guard let keyWindow = self.getLastKeyWindow(),
+        protectedWindow == nil,
         originalParent == nil,
         protectionTextField == nil else {
             return
@@ -71,7 +73,7 @@
         textField.frame = UIScreen.main.bounds
     
         originalParent = keyWindow.layer.superlayer
-        
+
         keyWindow.layer.superlayer?.addSublayer(textField.layer)
         
         if let firstTextFieldSublayer = textField.layer.sublayers?.first {
@@ -79,21 +81,23 @@
             firstTextFieldSublayer.addSublayer(keyWindow.layer)
         }
         
+        protectedWindow = keyWindow
         protectionTextField = textField
     }
     
     private func removeScreenCapturePolicy() {
         guard let textField = protectionTextField,
-              let window = self.getLastKeyWindow(),
+              let window = protectedWindow,
               let originalParentLayer = originalParent else {
             return
         }
-        
+
         window.layer.removeFromSuperlayer()
         originalParentLayer.addSublayer(window.layer)
         textField.layer.removeFromSuperlayer()
         protectionTextField = nil
         originalParent = nil
+        protectedWindow = nil
     }
     
     private func setScreenCapturePolicy() {
