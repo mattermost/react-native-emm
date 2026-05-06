@@ -117,7 +117,7 @@
     }
 
     @objc func handleCapturedDidChange(_ notification: Notification) {
-        conditionalApplyBlurEffect()
+        screenCaptureStatusChange()
     }
 
     @objc public func conditionalApplyBlurEffect(intensity: CGFloat = 0.5) {
@@ -172,7 +172,7 @@
             )
         } else {
             // For app switcher snapshot, apply blur immediately
-            blurEffectView.effect = UIBlurEffect(style: .regular)
+            blurEffectView.effect = UIBlurEffect(style: .dark)
             blurEffectView.alpha = 1.0
         }
 
