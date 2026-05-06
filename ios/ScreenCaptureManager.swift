@@ -10,8 +10,7 @@
 
     var preventScreenCapture: Bool = false {
         didSet {
-            // here we should traverse the viewControllers
-            // and apply or remove the protection
+            self.listenForScreenCapture()
             self.setScreenCapturePolicy()
         }
     }
@@ -21,7 +20,7 @@
         if self.preventScreenCapture {
             NotificationCenter.default.addObserver(
                 self,
-                selector: #selector(conditionalApplyBlurEffect),
+                selector: #selector(handleCapturedDidChange(_:)),
                 name: UIScreen.capturedDidChangeNotification,
                 object: nil
             )
@@ -109,6 +108,18 @@
     }
     
     // MARK: Blur effect functions
+    @objc func handleWillResignActive(_ notification: Notification) {
+        conditionalApplyBlurEffect()
+    }
+
+    @objc func handleDidBecomeActive(_ notification: Notification) {
+        conditionalRemoveBlurEffect(forced: true)
+    }
+
+    @objc func handleCapturedDidChange(_ notification: Notification) {
+        conditionalApplyBlurEffect()
+    }
+
     @objc public func conditionalApplyBlurEffect(intensity: CGFloat = 0.5) {
         if self.blurEffectView == nil && (
             (self.preventScreenCapture && !self.isAuthenticating) ||
