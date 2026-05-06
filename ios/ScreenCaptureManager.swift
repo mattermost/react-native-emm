@@ -86,14 +86,15 @@
     }
     
     private func removeScreenCapturePolicy() {
-        guard let textField = protectionTextField,
-              let window = protectedWindow,
-              let originalParentLayer = originalParent else {
+        guard let textField = protectionTextField else {
             return
         }
 
-        window.layer.removeFromSuperlayer()
-        originalParentLayer.addSublayer(window.layer)
+        if let window = protectedWindow, let originalParentLayer = originalParent {
+            window.layer.removeFromSuperlayer()
+            originalParentLayer.addSublayer(window.layer)
+        }
+
         textField.layer.removeFromSuperlayer()
         protectionTextField = nil
         originalParent = nil
