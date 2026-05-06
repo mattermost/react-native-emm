@@ -10,6 +10,7 @@
 
     var preventScreenCapture: Bool = false {
         didSet {
+            guard oldValue != preventScreenCapture else { return }
             self.listenForScreenCapture()
             self.setScreenCapturePolicy()
         }
