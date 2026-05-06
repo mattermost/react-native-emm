@@ -113,7 +113,8 @@
     }
 
     @objc func handleDidBecomeActive(_ notification: Notification) {
-        conditionalRemoveBlurEffect(forced: true)
+        conditionalRemoveBlurEffect()
+        screenCaptureStatusChange()
     }
 
     @objc func handleCapturedDidChange(_ notification: Notification) {
