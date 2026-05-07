@@ -24,7 +24,7 @@ class EmmModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
   }
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
-    override fun onActivityResult(activity: Activity?, requestCode: Int, resultCode: Int, data: Intent?) {
+    override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
       implementation.handleActivityResult(authPromise, activity, requestCode, resultCode, data)
       authPromise = null
     }

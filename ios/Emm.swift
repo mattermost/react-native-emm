@@ -14,12 +14,12 @@ import React
     
     @objc public func captureEvents() {
         NotificationCenter.default.addObserver(self, selector: #selector(managedConfigChaged(notification:)), name: UserDefaults.didChangeNotification, object: nil)
-        NotificationCenter.default.addObserver(ScreenCaptureManager.shared, selector: #selector(ScreenCaptureManager.applyBlurEffect(notification:)), name: UIApplication.willResignActiveNotification, object: nil)
-        NotificationCenter.default.addObserver(ScreenCaptureManager.shared, selector: #selector(ScreenCaptureManager.removeBlurEffect), name: UIApplication.didBecomeActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(ScreenCaptureManager.shared, selector: #selector(ScreenCaptureManager.handleWillResignActive(_:)), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(ScreenCaptureManager.shared, selector: #selector(ScreenCaptureManager.handleDidBecomeActive(_:)), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
     
     @objc public func invalidate() {
-        ScreenCaptureManager.shared.removeBlurEffect(forced: true)
+        ScreenCaptureManager.shared.conditionalRemoveBlurEffect(forced: true)
         NotificationCenter.default.removeObserver(self)
     }
     
@@ -34,7 +34,7 @@ import React
             self.authenticateWithPolicy(policy: .deviceOwnerAuthenticationWithBiometrics, reason: reason, fallback: fallback, supressEnterPassword: supressEnterPassword, completionHandler: {(success: Bool, error: Error?) in
                 if success && ScreenCaptureManager.shared.blurOnAuthenticate {
                     ScreenCaptureManager.shared.isAuthenticating = false
-                    ScreenCaptureManager.shared.removeBlurEffect(forced: true)
+                    ScreenCaptureManager.shared.conditionalRemoveBlurEffect(forced: true)
                 } else {
                     DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.5) {
                         ScreenCaptureManager.shared.isAuthenticating = false

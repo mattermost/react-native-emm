@@ -2,23 +2,19 @@
     @objc public static let shared = ScreenCaptureManager()
     
     // MARK: Properties
-    internal var blurView: UIImageView? = nil
+    private var blurEffectView: AnimatedBlurEffectView?
     var isAuthenticating: Bool = false
     var blurOnAuthenticate: Bool = false
+    private var protectionTextField: UITextField?
+    private var originalParent: CALayer?
+    private weak var protectedWindow: UIWindow?
 
     var preventScreenCapture: Bool = false {
         didSet {
-            // here we should traverse the viewControllers
-            // and apply or remove the protection
-            self.applyScreenCapturePolicy()
+            guard oldValue != preventScreenCapture else { return }
+            self.listenForScreenCapture()
+            self.setScreenCapturePolicy()
         }
-    }
-    
-    // MARK: Swizzle for RNN
-    public static func startTrackingScreens() {
-        UIWindow.swizzleRNNOverlayPresentation
-        UIViewController.swizzleViewControllerLifecycleMethods
-        UINavigationController.swizzleNavigationTracking()
     }
     
     // MARK: Event listener
@@ -26,7 +22,7 @@
         if self.preventScreenCapture {
             NotificationCenter.default.addObserver(
                 self,
-                selector: #selector(applyBlurEffect(notification:)),
+                selector: #selector(handleCapturedDidChange(_:)),
                 name: UIScreen.capturedDidChangeNotification,
                 object: nil
             )
@@ -42,24 +38,13 @@
     
     func screenCaptureStatusChange() {
         if self.preventScreenCapture && UIScreen.main.isCaptured && !self.isAuthenticating {
-            applyBlurEffect() // Prevent screen recording
+            conditionalApplyBlurEffect() // Prevent screen recording
         } else {
             removeBlurEffect()
         }
     }
     
     // MARK: Windows and ViewControllers
-    func getKeyWindow() -> UIWindow? {
-        if #available(iOS 15.0, *) {
-            return UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .flatMap { $0.windows }
-                .first { $0.isKeyWindow }
-        } else {
-            return UIApplication.shared.windows.first { $0.isKeyWindow }
-        }
-    }
-    
     func getLastKeyWindow() -> UIWindow? {
         if #available(iOS 15.0, *) {
             return UIApplication.shared.connectedScenes
@@ -71,156 +56,152 @@
         }
     }
 
-    func getAllKeyWindows() -> [UIWindow] {
-        if #available(iOS 15.0, *) {
-            return UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .flatMap { $0.windows }
-        } else {
-            return UIApplication.shared.windows
-        }
-    }
-    
-    private func getAllRootViewControllers() -> [UIViewController] {
-        return getAllKeyWindows().compactMap { $0.rootViewController }
-    }
-    
-    private func getAllPresentedViewControllers(from viewController: UIViewController) -> [UIViewController] {
-        var presentedVCs: [UIViewController] = []
-        
-        var currentVC: UIViewController? = viewController
-        while let vc = currentVC {
-            presentedVCs.append(vc)
-            currentVC = vc.presentedViewController
-        }
-        
-        return presentedVCs
-    }
-    
+
     // MARK: Screenshot protection functions
-    private func applyPolicyToViewController(_ vc: UIViewController) {
-        if self.preventScreenCapture {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                vc.applyScreenCaptureProtection()
-            }
+    private func applyScreenCapturePolicy() {
+        guard let keyWindow = self.getLastKeyWindow(),
+        protectedWindow == nil,
+        originalParent == nil,
+        protectionTextField == nil else {
             return
         }
+    
+        let textField = UITextField()
+        textField.isSecureTextEntry = true
+        textField.isUserInteractionEnabled = false
+        textField.backgroundColor = UIColor.clear
+        textField.frame = UIScreen.main.bounds
+    
+        originalParent = keyWindow.layer.superlayer
+
+        keyWindow.layer.superlayer?.addSublayer(textField.layer)
         
-        vc.removeScreenCaptureProtection()
+        if let firstTextFieldSublayer = textField.layer.sublayers?.first {
+            keyWindow.layer.removeFromSuperlayer()
+            firstTextFieldSublayer.addSublayer(keyWindow.layer)
+        }
+        
+        protectedWindow = keyWindow
+        protectionTextField = textField
     }
     
-    private func applyScreenCapturePolicy() {
-        DispatchQueue.main.async {
-            for rootVC in self.getAllRootViewControllers() {
-                let c = NSStringFromClass(type(of: rootVC))
-                if c.contains("RNNStackController"), let r = rootVC as? UINavigationController {
-                    for vc in r.viewControllers {
-                        print(String(describing: type(of: vc)))
-                        self.applyPolicyToViewController(vc)
-                    }
-                }
-                if let modalVC = rootVC.presentedViewController {
-                    let c = NSStringFromClass(type(of: modalVC))
-                    print(String(describing: type(of: modalVC)))
-                    if c.contains("RNNStackController"), let r = modalVC as? UINavigationController {
-                        for vc in r.viewControllers {
-                            print(String(describing: type(of: vc)))
-                            self.applyPolicyToViewController(vc)
-                        }
-                    }
-                }
-            }
+    private func removeScreenCapturePolicy() {
+        guard let textField = protectionTextField else {
+            return
         }
+
+        if let window = protectedWindow, let originalParentLayer = originalParent {
+            window.layer.removeFromSuperlayer()
+            originalParentLayer.addSublayer(window.layer)
+        }
+
+        textField.layer.removeFromSuperlayer()
+        protectionTextField = nil
+        originalParent = nil
+        protectedWindow = nil
+    }
+    
+    private func setScreenCapturePolicy() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: { [weak self] in
+            guard let self = self else { return }
+            if self.preventScreenCapture {
+                self.applyScreenCapturePolicy()
+                return
+            }
+        
+            self.removeScreenCapturePolicy()
+        })
     }
     
     // MARK: Blur effect functions
-    func createBlurEffect(window: UIWindow, toImage image: inout UIImage, radius: Double) {
-        let ciImage = CIImage(image: image)
-        let filter = CIFilter(name: "CIGaussianBlur")
-        filter?.setValue(ciImage, forKey: "inputImage")
-        filter?.setValue(radius, forKey: "inputRadius")
-        guard let blurredImage = filter?.outputImage else {
-            image = UIImage()
-            return
-        }
-        let croppedFrame = CGRect(
-            x: window.frame.origin.x,
-            y: window.frame.origin.y,
-            width: window.frame.width * UIScreen.main.scale,
-            height: window.frame.height * UIScreen.main.scale
-        )
-        let cover = blurredImage.cropped(to: croppedFrame)
-        image = UIImage.init(ciImage: cover)
-    }
-    
-    func screenShot(window: UIWindow) -> UIImage {
-        let scale = UIScreen.main.scale
-        UIGraphicsBeginImageContextWithOptions(window.frame.size, false, scale);
-        window.layer.render(in: UIGraphicsGetCurrentContext()!)
-        let screenshot = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return screenshot ?? UIImage()
-    }
-    
-    @objc func applyBlurEffect(notification: Notification) {
-        self.applyBlurEffect(radius: 10.0)
+    @objc func handleWillResignActive(_ notification: Notification) {
+        conditionalApplyBlurEffect()
     }
 
-    
-    @objc public func applyBlurEffect(radius: Double = 10.0) {
-        if self.blurView == nil && (
-                (self.preventScreenCapture && !self.isAuthenticating) ||
-                (self.isAuthenticating && self.blurOnAuthenticate)
+    @objc func handleDidBecomeActive(_ notification: Notification) {
+        conditionalRemoveBlurEffect()
+        screenCaptureStatusChange()
+    }
+
+    @objc func handleCapturedDidChange(_ notification: Notification) {
+        screenCaptureStatusChange()
+    }
+
+    @objc public func conditionalApplyBlurEffect(intensity: CGFloat = 0.5) {
+        if self.blurEffectView == nil && (
+            (self.preventScreenCapture && !self.isAuthenticating) ||
+            (self.isAuthenticating && self.blurOnAuthenticate)
         ) {
-            DispatchQueue.main.async {
-                if let window = self.getKeyWindow() {
-                    if self.blurView == nil {
-                        self.blurView = UIImageView()
-                    }
-                    guard let blurView = self.blurView else { return }
-                    var cover = self.screenShot(window: window)
-                    blurView.frame = window.frame
-                    blurView.contentMode = .scaleToFill
-                    blurView.backgroundColor = UIColor.gray
-                    window.addSubview(blurView)
-                    self.createBlurEffect(window: window, toImage: &cover, radius: radius)
-                    blurView.image = cover
+            self.applyBlurEffect(intensity: intensity, animated: false)
+        }
+    }
+    
+    @objc public func conditionalRemoveBlurEffect(forced: Bool = false) {
+        if ((!UIScreen.main.isCaptured && !self.isAuthenticating) || forced) {
+            self.removeBlurEffect()
+        }
+    }
+    
+    @objc public func applyBlurEffect(intensity: CGFloat = 0.5, animated: Bool = true) {
+        // Apply blur synchronously if on main thread to ensure it appears in app switcher snapshot
+        if Thread.isMainThread {
+            applyBlurEffectSync(intensity: intensity, animated: animated)
+        } else {
+            DispatchQueue.main.sync {
+                self.applyBlurEffectSync(intensity: intensity, animated: animated)
+            }
+        }
+    }
+    
+    private func applyBlurEffectSync(intensity: CGFloat, animated: Bool) {
+        guard self.blurEffectView == nil,
+              let keyWindow = self.getLastKeyWindow(),
+              let rootView = keyWindow.subviews.first else { return }
+
+        let blurEffectView = AnimatedBlurEffectView(style: .dark, intensity: intensity)
+        blurEffectView.frame = rootView.bounds
+        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        blurEffectView.isUserInteractionEnabled = false
+
+        rootView.addSubview(blurEffectView)
+        self.blurEffectView = blurEffectView
+
+        if animated {
+            blurEffectView.alpha = 0
+            blurEffectView.setupBlur()
+            UIView.animate(
+                withDuration: 0.3,
+                delay: 0,
+                options: [.curveEaseOut],
+                animations: {
+                    blurEffectView.alpha = 1.0
                 }
-            }
-        }
-    }
-    
-    @objc public func removeBlurEffect(forced: Bool = false) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            if self.blurView != nil && ((!UIScreen.main.isCaptured && !self.isAuthenticating) || forced) {
-                self.blurView?.removeFromSuperview()
-                self.blurView = nil
-            }
-        }
-    }
-    
-    // MARK: Print View hierarchy tree for debugging purposes
-    func logLayerHierarchy(_ view: UIView?, prefix: String = "") {
-#if DEBUG
-        guard let view = view else { return }
-        let viewClassName: String = String(describing: type(of: view))
-        print("\(prefix)└── View: \(viewClassName), Layer: \(view.layer.name ?? "nil"), NativeID: \(String(describing: view.nativeID))")
-
-        if view is UITextField {
-            print("\(prefix)    (FOUND TEXTFIELD)")
+            )
+        } else {
+            // For app switcher snapshot, apply blur immediately
+            blurEffectView.effect = UIBlurEffect(style: .dark)
+            blurEffectView.alpha = 1.0
         }
 
-        let subviewCount = view.subviews.count
-        for (index, subview) in view.subviews.enumerated() {
-            let isLast = index == subviewCount - 1
-            let newPrefix = prefix + (isLast ? "    " : "│   ")
-            logLayerHierarchy(subview, prefix: newPrefix)
-        }
-#endif
     }
     
-    func logLayerHierarchy(_ vc: UIViewController?, prefix: String = "") {
-        guard let vc = vc else { return }
-        logLayerHierarchy(vc.view, prefix: prefix)
+    @objc public func removeBlurEffect() {
+        DispatchQueue.main.async {
+            guard let blurEffectView = self.blurEffectView else {
+                return
+            }
+            UIView.animate(
+                withDuration: 0.25,
+                delay: 0,
+                options: [.curveEaseIn],
+                animations: {
+                    blurEffectView.alpha = 0
+                },
+                completion: { _ in
+                    blurEffectView.removeFromSuperview()
+                    self.blurEffectView = nil
+                }
+            )
+        }
     }
 }

@@ -279,6 +279,11 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
             val decorView = activity.window.decorView as ViewGroup
             val rootView = activity.findViewById<ViewGroup>(android.R.id.content)
 
+            if (radius <= 0) {
+                removeBlurEffect()
+                return@runOnUiThread
+            }
+
             if (blurView == null) {
                 val blurAlgorithm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     RenderEffectBlur()
@@ -293,7 +298,7 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
 
                     setupWith(rootView, blurAlgorithm)
                         .setFrameClearDrawable(decorView.background)
-                        .setBlurRadius(radius.toFloat())
+                        .setBlurRadius(radius.toFloat() * 10f)
                         .setBlurAutoUpdate(true)
                 }
 

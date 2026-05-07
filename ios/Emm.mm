@@ -144,26 +144,26 @@ RCT_REMAP_METHOD(removeBlurEffect, removeBlur) {
 }
 
 
-- (void)openSecuritySettings { 
-    NSLog(@"Method not implemented on iOS");
+- (void)openSecuritySettings {
+  NSLog(@"Method not implemented on iOS");
 }
 
 
-- (void)setAppGroupId:(NSString *)identifier { 
-    [wrapper setAppGroupIdWithIdentifier:identifier];
+- (void)setAppGroupId:(NSString *)identifier {
+  [wrapper setAppGroupIdWithIdentifier:identifier];
 }
 
 
-- (void)setBlurScreen:(BOOL)enabled { 
-    [wrapper setBlurScreenWithEnabled:enabled];
+- (void)setBlurScreen:(BOOL)enabled {
+  [wrapper setBlurScreenWithEnabled:enabled];
 }
 
 -(void)applyBlurEffect:(double)radius {
-    [[ScreenCaptureManager shared] applyBlurEffectWithRadius:radius];
+  [[ScreenCaptureManager shared] applyBlurEffectWithIntensity:radius animated:true];
 }
 
 -(void)removeBlurEffect {
-    [[ScreenCaptureManager shared] removeBlurEffectWithForced:true];
+  [[ScreenCaptureManager shared] removeBlurEffect];
 }
 
 @end
