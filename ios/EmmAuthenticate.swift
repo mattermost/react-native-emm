@@ -1,7 +1,76 @@
 import LocalAuthentication
 import UIKit
 
+enum EmmAuthError: String {
+    case authFailed = "E_AUTH_FAILED"
+    case cancelled = "E_CANCELLED"
+    case indeterminate = "E_INDETERMINATE"
+}
+
 extension EmmWrapper {
+        static let foregroundWaitTimeout: TimeInterval = 5.0
+
+        // userFallback only reaches here when the caller disabled the fallback; otherwise
+        // it is escalated to passcode entry.
+        static func classify(_ error: Error?) -> EmmAuthError {
+            guard let error = error as NSError? else {
+                return .indeterminate
+            }
+
+            switch error.code {
+            case LAError.authenticationFailed.rawValue,
+                 LAError.biometryLockout.rawValue:
+                return .authFailed
+
+            case LAError.userCancel.rawValue,
+                 LAError.appCancel.rawValue,
+                 LAError.systemCancel.rawValue,
+                 LAError.userFallback.rawValue:
+                return .cancelled
+
+            // Unrecognised errors mean we learned nothing, so never claim the user failed.
+            default:
+                return .indeterminate
+            }
+        }
+
+        // LocalAuthentication is unusable until the app is frontmost, and iOS reports the
+        // `active` app state while still animating out of the app switcher. On timeout we
+        // report failure rather than running the work, so callers reject instead of
+        // fabricating a "not secured" verdict.
+        func whenAppIsActive(_ work: @escaping (_ isActive: Bool) -> Void) {
+            DispatchQueue.main.async {
+                if UIApplication.shared.applicationState == .active {
+                    work(true)
+                    return
+                }
+
+                var observer: NSObjectProtocol?
+                var settled = false
+
+                let settle = { (isActive: Bool) in
+                    guard !settled else { return }
+                    settled = true
+                    if let observer = observer {
+                        NotificationCenter.default.removeObserver(observer)
+                    }
+                    work(isActive)
+                }
+
+                observer = NotificationCenter.default.addObserver(
+                    forName: UIApplication.didBecomeActiveNotification,
+                    object: nil,
+                    queue: .main
+                ) { _ in
+                    settle(true)
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + EmmWrapper.foregroundWaitTimeout) {
+                    settle(false)
+                }
+            }
+        }
+
         private func showBlockingView() {
             DispatchQueue.main.async {
                 guard let window = ScreenCaptureManager.shared.getLastKeyWindow() else { return }
@@ -26,42 +95,55 @@ extension EmmWrapper {
             if (supressEnterPassword) {
                 context.localizedFallbackTitle = ""
             }
-    
-            var error: NSError?
-    
-            if (!context.canEvaluatePolicy(policy, error: &error)) {
-                if (policy == LAPolicy.deviceOwnerAuthenticationWithBiometrics) {
-                    if #available(iOS 11.0, *) {
-                        switch error!.code {
-                        case LAError.Code.biometryNotAvailable.rawValue,
-                             LAError.Code.biometryNotEnrolled.rawValue,
-                             LAError.Code.biometryLockout.rawValue:
-                            if (fallback) {
-                                self.authenticateWithPolicy(policy: .deviceOwnerAuthentication, reason: reason, fallback: fallback, supressEnterPassword: supressEnterPassword, completionHandler: completionHandler)
-                                return
-                            }
-                        default:
-                            completionHandler(false, error);
-                        }
-                    } else if (fallback) {
-                        self.authenticateWithPolicy(policy: .deviceOwnerAuthentication, reason: reason, fallback: fallback, supressEnterPassword: supressEnterPassword, completionHandler: completionHandler)
-                        return
-                    } else {
-                        completionHandler(false, error);
-                    }
-                }
+
+            let isBiometricPolicy = policy == LAPolicy.deviceOwnerAuthenticationWithBiometrics
+
+            // Only valid from the biometric policy, so a failure on .deviceOwnerAuthentication
+            // stays terminal instead of recursing.
+            let escalateToPasscode = { () -> Bool in
+                guard isBiometricPolicy && fallback else { return false }
+                self.authenticateWithPolicy(policy: .deviceOwnerAuthentication, reason: reason, fallback: fallback, supressEnterPassword: supressEnterPassword, completionHandler: completionHandler)
+                return true
             }
 
-            self.showBlockingView();
-    
+            var canEvaluateError: NSError?
+
+            if (!context.canEvaluatePolicy(policy, error: &canEvaluateError)) {
+                let code = canEvaluateError?.code
+
+                if isBiometricPolicy &&
+                    (code == LAError.biometryNotAvailable.rawValue ||
+                     code == LAError.biometryNotEnrolled.rawValue ||
+                     code == LAError.biometryLockout.rawValue) &&
+                    escalateToPasscode() {
+                    return
+                }
+
+                completionHandler(false, canEvaluateError)
+                return
+            }
+
+            self.showBlockingView()
+
             context.evaluatePolicy(policy, localizedReason: reason, reply: {(success: Bool, error: Error?) in
-                self.removeBlockingView();
-                if (error != nil) {
+                self.removeBlockingView()
+
+                if let error = error {
+                    let code = (error as NSError).code
+
+                    // userFallback means the user asked for the passcode; authenticationFailed
+                    // means biometrics are exhausted. Both warrant passcode entry rather than
+                    // reporting failure.
+                    if (code == LAError.userFallback.rawValue || code == LAError.authenticationFailed.rawValue),
+                       escalateToPasscode() {
+                        return
+                    }
+
                     completionHandler(false, error)
                     return
                 }
-    
-                completionHandler(true, nil)
+
+                completionHandler(success, nil)
             })
         }
     

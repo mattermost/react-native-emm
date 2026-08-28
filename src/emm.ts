@@ -3,9 +3,11 @@ import {
   Platform,
 } from 'react-native';
 
-import type {
-  AuthenticateConfig,
-  AuthenticationMethods,
+import {
+  AuthenticationError,
+  AuthenticationOutcome,
+  type AuthenticateConfig,
+  type AuthenticationMethods,
 } from './types/authenticate';
 import type {
   EnterpriseMobilityManager,
@@ -16,6 +18,21 @@ import RNEmm from './emm-native';
 
 const emitter = new NativeEventEmitter(RNEmm);
 
+const OUTCOMES: readonly AuthenticationOutcome[] = [
+  AuthenticationOutcome.Failed,
+  AuthenticationOutcome.Cancelled,
+  AuthenticationOutcome.Indeterminate,
+];
+
+// Unrecognised codes are indeterminate: we cannot claim the user failed.
+const toAuthenticationError = (error: unknown) => {
+  const code = (error as {code?: string} | undefined)?.code;
+  const outcome = OUTCOMES.find((value) => value === code) ?? AuthenticationOutcome.Indeterminate;
+  const message = (error as {message?: string} | undefined)?.message;
+
+  return new AuthenticationError(outcome, message);
+};
+
 const Emm: EnterpriseMobilityManager = {
   addListener: <T>(callback: ManagedConfigCallBack<T>) => {
     return emitter.addListener('managedConfigChanged', (config: T) => {
@@ -23,20 +40,19 @@ const Emm: EnterpriseMobilityManager = {
     });
   },
   authenticate: async (opts: AuthenticateConfig) => {
+    const options: AuthenticateConfig = {
+      reason: opts.reason || '',
+      description: opts.description || '',
+      fallback: opts.fallback ?? true,
+      supressEnterPassword: opts.supressEnterPassword || false,
+      blurOnAuthenticate: opts.blurOnAuthenticate || false,
+    };
+
     try {
-      const options: AuthenticateConfig = {
-        reason: opts.reason || '',
-        description: opts.description || '',
-        fallback: opts.fallback || true,
-        supressEnterPassword: opts.supressEnterPassword || false,
-        blurOnAuthenticate: opts.blurOnAuthenticate || false,
-      };
-
       await RNEmm.authenticate(options);
-
       return true;
-    } catch {
-      return false;
+    } catch (error) {
+      throw toAuthenticationError(error);
     }
   },
   getManagedConfig: <T>() => RNEmm.getManagedConfig() as T,
@@ -44,8 +60,8 @@ const Emm: EnterpriseMobilityManager = {
     try {
       const result: AuthenticationMethods = await RNEmm.deviceSecureWith();
       return result.face || result.fingerprint || result.passcode;
-    } catch {
-      return false;
+    } catch (error) {
+      throw toAuthenticationError(error);
     }
   },
   openSecuritySettings: () => {
