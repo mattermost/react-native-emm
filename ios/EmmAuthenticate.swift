@@ -10,8 +10,8 @@ enum EmmAuthError: String {
 extension EmmWrapper {
         static let foregroundWaitTimeout: TimeInterval = 5.0
 
-        // userFallback is absent by design: it is escalated to passcode natively and
-        // never reaches here.
+        // userFallback only reaches here when the caller disabled the fallback; otherwise
+        // it is escalated to passcode entry.
         static func classify(_ error: Error?) -> EmmAuthError {
             guard let error = error as NSError? else {
                 return .indeterminate
@@ -24,7 +24,8 @@ extension EmmWrapper {
 
             case LAError.userCancel.rawValue,
                  LAError.appCancel.rawValue,
-                 LAError.systemCancel.rawValue:
+                 LAError.systemCancel.rawValue,
+                 LAError.userFallback.rawValue:
                 return .cancelled
 
             // Unrecognised errors mean we learned nothing, so never claim the user failed.
