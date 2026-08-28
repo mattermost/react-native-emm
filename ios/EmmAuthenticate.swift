@@ -122,10 +122,10 @@ extension EmmWrapper {
                 return
             }
 
-            self.showBlockingView();
+            self.showBlockingView()
 
             context.evaluatePolicy(policy, localizedReason: reason, reply: {(success: Bool, error: Error?) in
-                self.removeBlockingView();
+                self.removeBlockingView()
 
                 if let error = error {
                     let code = (error as NSError).code

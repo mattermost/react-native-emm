@@ -47,13 +47,18 @@ import React
                         }
                     }
 
-                    if (error != nil) {
+                    if let error = error as NSError? {
                         let classified = EmmWrapper.classify(error)
-                        reject(classified.rawValue, self.errorMessageForFails(errorCode: (error! as NSError).code), error)
+                        reject(classified.rawValue, self.errorMessageForFails(errorCode: error.code), error)
                         return
                     }
 
-                    resolve(success)
+                    guard success else {
+                        reject(EmmAuthError.indeterminate.rawValue, "Authentication did not complete", nil)
+                        return
+                    }
+
+                    resolve(true)
                 })
             }
         }
