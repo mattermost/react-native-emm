@@ -24,46 +24,73 @@ import React
     }
     
     @objc public func authenticate(options:Dictionary<String, Any>, resolve:(@escaping RCTPromiseResolveBlock), reject:(@escaping RCTPromiseRejectBlock)) {
-        DispatchQueue.global(qos: .userInitiated).async {
-            let reason = options["reason"] as! String
-            let fallback = options["fallback"] as! Bool
-            let supressEnterPassword = options["supressEnterPassword"] as! Bool
-            ScreenCaptureManager.shared.isAuthenticating = true
-            ScreenCaptureManager.shared.blurOnAuthenticate = options["blurOnAuthenticate"] as? Bool ?? false
-            ScreenCaptureManager.shared.applyBlurEffect()
-            self.authenticateWithPolicy(policy: .deviceOwnerAuthenticationWithBiometrics, reason: reason, fallback: fallback, supressEnterPassword: supressEnterPassword, completionHandler: {(success: Bool, error: Error?) in
-                if success && ScreenCaptureManager.shared.blurOnAuthenticate {
-                    ScreenCaptureManager.shared.isAuthenticating = false
-                    ScreenCaptureManager.shared.conditionalRemoveBlurEffect(forced: true)
-                } else {
-                    DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.5) {
+        self.whenAppIsActive { isActive in
+            guard isActive else {
+                reject(EmmAuthError.indeterminate.rawValue, "App did not reach the foreground", nil)
+                return
+            }
+
+            DispatchQueue.global(qos: .userInitiated).async {
+                let reason = options["reason"] as! String
+                let fallback = options["fallback"] as! Bool
+                let supressEnterPassword = options["supressEnterPassword"] as! Bool
+                ScreenCaptureManager.shared.isAuthenticating = true
+                ScreenCaptureManager.shared.blurOnAuthenticate = options["blurOnAuthenticate"] as? Bool ?? false
+                ScreenCaptureManager.shared.applyBlurEffect()
+                self.authenticateWithPolicy(policy: .deviceOwnerAuthenticationWithBiometrics, reason: reason, fallback: fallback, supressEnterPassword: supressEnterPassword, completionHandler: {(success: Bool, error: Error?) in
+                    if success && ScreenCaptureManager.shared.blurOnAuthenticate {
                         ScreenCaptureManager.shared.isAuthenticating = false
+                        ScreenCaptureManager.shared.conditionalRemoveBlurEffect(forced: true)
+                    } else {
+                        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.5) {
+                            ScreenCaptureManager.shared.isAuthenticating = false
+                        }
                     }
-                }
-                
-                if (error != nil) {
-                    let errorReason = self.errorMessageForFails(errorCode: (error! as NSError).code)
-                    reject("error", errorReason, error)
-                    return
-                }
-                
-                resolve(true)
-            })
+
+                    if (error != nil) {
+                        let classified = EmmWrapper.classify(error)
+                        reject(classified.rawValue, self.errorMessageForFails(errorCode: (error! as NSError).code), error)
+                        return
+                    }
+
+                    resolve(success)
+                })
+            }
         }
     }
     
-    @objc public func deviceSecureWith(resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
-        var result = [
-            "face": false,
-            "fingerprint": false,
-            "passcode": false
-        ]
-        
-        let context = LAContext()
-        let hasAuthenticationBiometrics = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
-        let hasAuthentication = context.canEvaluatePolicy(.deviceOwnerAuthentication, error: nil)
-        
-        if #available(iOS 11.0, *) {
+    @objc public func deviceSecureWith(resolve:(@escaping RCTPromiseResolveBlock),reject:(@escaping RCTPromiseRejectBlock)) -> Void {
+        self.whenAppIsActive { isActive in
+            guard isActive else {
+                reject(EmmAuthError.indeterminate.rawValue, "App did not reach the foreground", nil)
+                return
+            }
+
+            var result = [
+                "face": false,
+                "fingerprint": false,
+                "passcode": false
+            ]
+
+            let context = LAContext()
+            let hasAuthenticationBiometrics = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
+
+            // The device-credential probe is the authority on whether the device is secured;
+            // the biometric probe legitimately fails on a passcode-only device.
+            var authenticationError: NSError?
+            let hasAuthentication = context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &authenticationError)
+
+            guard hasAuthentication else {
+                // Only passcodeNotSet is a real "not secured" verdict. Anything else means we
+                // could not evaluate, and must not be reported as an unsecured device.
+                if authenticationError?.code == LAError.passcodeNotSet.rawValue {
+                    resolve(result)
+                } else {
+                    reject(EmmAuthError.indeterminate.rawValue, "Could not determine device security", authenticationError)
+                }
+                return
+            }
+
             if (hasAuthenticationBiometrics) {
                 switch context.biometryType {
                 case .faceID:
@@ -71,18 +98,14 @@ import React
                 case .touchID:
                     result["fingerprint"] = true
                 default:
-                    print("No Biometrics authentication found")
+                    result["passcode"] = true
                 }
-            } else if (hasAuthentication) {
+            } else {
                 result["passcode"] = true
             }
-        } else if (hasAuthenticationBiometrics) {
-            result["fingerprint"] = true
-        } else if (hasAuthentication) {
-            result["passcode"] = true
+
+            resolve(result)
         }
-        
-        resolve(result)
     }
     
     @objc public func setBlurScreen(enabled: Bool) {

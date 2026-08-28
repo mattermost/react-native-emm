@@ -103,10 +103,19 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
         val maxRetries = 3
         var failedAttempts = 0
 
+        // The prompt can report an error and also fire the cancellation listener.
+        var settled = false
+        val settle = { code: String, message: String ->
+            if (!settled) {
+                settled = true
+                promise?.reject(code, message)
+            }
+        }
+
         val cancellationSignal = CancellationSignal()
         cancellationSignal.setOnCancelListener {
             Log.i("ReactNative", "Biometric prompt cancelled")
-            promise?.reject(CANCELLED, "Biometric prompt cancelled")
+            settle(CANCELLED, "Biometric prompt cancelled")
         }
 
         try {
@@ -116,7 +125,7 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
             )
 
             if (canAuthenticate != BiometricManager.BIOMETRIC_SUCCESS) {
-                promise?.reject(ERROR, "Biometric authentication not available")
+                settle(ERROR, "Biometric authentication unavailable [$canAuthenticate]")
                 return
             }
 
@@ -129,16 +138,20 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     super.onAuthenticationError(errorCode, errString)
                     when (errorCode) {
-                        BiometricPrompt.ERROR_LOCKOUT -> {
-                            Log.e("ReactNative", "Biometric authentication temporarily locked out")
-                            promise?.reject(ERROR, "Too many failed attempts. Please try again later.")
-                        }
+                        BiometricPrompt.ERROR_LOCKOUT,
                         BiometricPrompt.ERROR_LOCKOUT_PERMANENT -> {
-                            Log.e("ReactNative", "Biometric authentication permanently locked")
-                            promise?.reject(ERROR, "Too many failed attempts. Use device credentials.")
+                            Log.e("ReactNative", "Biometric authentication locked out")
+                            settle(FAILED, "Too many failed attempts.")
+                        }
+                        // ERROR_CANCELED is the system cancelling, e.g. on backgrounding.
+                        BiometricPrompt.ERROR_USER_CANCELED,
+                        BiometricPrompt.ERROR_NEGATIVE_BUTTON,
+                        BiometricPrompt.ERROR_CANCELED -> {
+                            Log.i("ReactNative", "Biometric prompt dismissed [$errorCode]")
+                            settle(CANCELLED, "Authentication cancelled")
                         }
                         else -> {
-                            promise?.reject(ERROR, "Error code [$errorCode]: $errString")
+                            settle(ERROR, "Error code [$errorCode]: $errString")
                         }
                     }
                 }
@@ -148,7 +161,10 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
                     if (blurOnAuthenticate) {
                         removeBlurEffect()
                     }
-                    promise?.resolve(true)
+                    if (!settled) {
+                        settled = true
+                        promise?.resolve(true)
+                    }
                 }
 
                 override fun onAuthenticationFailed() {
@@ -156,8 +172,8 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
                     failedAttempts++
                     if (failedAttempts >= maxRetries) {
                         Log.w("ReactNative", "Max retries reached. Stopping authentication.")
-                        promise?.reject(FAILED, "Max biometric attempts reached. Please try again later.")
-                        cancellationSignal.cancel() // Cancel authentication prompt
+                        settle(FAILED, "Max biometric attempts reached. Please try again later.")
+                        cancellationSignal.cancel()
                         return
                     }
                     Log.w("ReactNative", "Biometric authentication failed ($failedAttempts/$maxRetries), retry allowed")
@@ -175,7 +191,7 @@ class EmmModuleImpl(reactApplicationContext: ReactApplicationContext) {
             }
 
         } catch (e: Exception) {
-            promise?.reject("FAILED", e.localizedMessage ?: "Unknown error")
+            settle(ERROR, e.localizedMessage ?: "Unknown error")
             throw e
         }
     }

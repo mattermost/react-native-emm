@@ -8,6 +8,7 @@ export type ManagedConfigCallBack<T> = {
 export interface EnterpriseMobilityManager {
   addListener<T>(callback: ManagedConfigCallBack<T>): EmitterSubscription;
 
+  /** Rejects with {@link AuthenticationError} carrying the outcome. */
   authenticate(opts: AuthenticateConfig): Promise<boolean>;
 
   deviceSecureWith(): Promise<AuthenticationMethods>;
@@ -22,6 +23,7 @@ export interface EnterpriseMobilityManager {
 
   getManagedConfig<T>(): T;
 
+  /** Rejects with {@link AuthenticationError} when the check cannot be performed. */
   isDeviceSecured(): Promise<boolean>;
 
   openSecuritySettings(): void;
