@@ -155,15 +155,15 @@
     
     private func applyBlurEffectSync(intensity: CGFloat, animated: Bool) {
         guard self.blurEffectView == nil,
-              let keyWindow = self.getLastKeyWindow(),
-              let rootView = keyWindow.subviews.first else { return }
+              let keyWindow = self.getLastKeyWindow() else { return }
 
         let blurEffectView = AnimatedBlurEffectView(style: .dark, intensity: intensity)
-        blurEffectView.frame = rootView.bounds
+        blurEffectView.frame = keyWindow.bounds
         blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         blurEffectView.isUserInteractionEnabled = false
 
-        rootView.addSubview(blurEffectView)
+        // Attach to the window itself so the blur sits above any presented view controllers (modals).
+        keyWindow.addSubview(blurEffectView)
         self.blurEffectView = blurEffectView
 
         if animated {
@@ -186,22 +186,33 @@
     }
     
     @objc public func removeBlurEffect() {
-        DispatchQueue.main.async {
-            guard let blurEffectView = self.blurEffectView else {
-                return
+        if Thread.isMainThread {
+            removeBlurEffectSync()
+        } else {
+            DispatchQueue.main.async {
+                self.removeBlurEffectSync()
             }
-            UIView.animate(
-                withDuration: 0.25,
-                delay: 0,
-                options: [.curveEaseIn],
-                animations: {
-                    blurEffectView.alpha = 0
-                },
-                completion: { _ in
-                    blurEffectView.removeFromSuperview()
-                    self.blurEffectView = nil
-                }
-            )
         }
+    }
+
+    private func removeBlurEffectSync() {
+        guard let blurEffectView = self.blurEffectView else {
+            return
+        }
+
+        // Detach before animating so a blur applied during the fade-out is tracked independently
+        // and not cleared by this animation's completion.
+        self.blurEffectView = nil
+        UIView.animate(
+            withDuration: 0.25,
+            delay: 0,
+            options: [.curveEaseIn],
+            animations: {
+                blurEffectView.alpha = 0
+            },
+            completion: { _ in
+                blurEffectView.removeFromSuperview()
+            }
+        )
     }
 }
